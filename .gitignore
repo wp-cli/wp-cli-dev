@@ -1,0 +1,7 @@
+# Exclude all subfolders...
+/*/
+# except for the _maintenance folder.
+!/.maintenance/
+!/.readme-partials/
+
+composer.lock

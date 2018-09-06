@@ -1,0 +1,346 @@
+{
+	"name": "wp-cli/wp-cli-dev",
+	"description": "Sets up a WP-CLI development environment that allows for easy development across all packages.",
+	"keywords": [
+		"cli",
+		"wordpress"
+	],
+	"homepage": "https://wp-cli.org",
+	"license": "MIT",
+	"repositories": [
+		{
+			"type": "path",
+			"url": "php-cli-tools"
+		},
+		{
+			"type": "path",
+			"url": "wp-cli"
+		},
+		{
+			"type": "path",
+			"url": "wp-cli.github.com"
+		},
+		{
+			"type": "path",
+			"url": "builds"
+		},
+		{
+			"type": "path",
+			"url": "sample-plugin"
+		},
+		{
+			"type": "path",
+			"url": "google-sitemap-generator-cli"
+		},
+		{
+			"type": "path",
+			"url": "wp-super-cache-cli"
+		},
+		{
+			"type": "path",
+			"url": "package-index"
+		},
+		{
+			"type": "path",
+			"url": "server-command"
+		},
+		{
+			"type": "path",
+			"url": "restful"
+		},
+		{
+			"type": "path",
+			"url": "scaffold-package-command"
+		},
+		{
+			"type": "path",
+			"url": "doctor-command"
+		},
+		{
+			"type": "path",
+			"url": "dist-archive-command"
+		},
+		{
+			"type": "path",
+			"url": "profile-command"
+		},
+		{
+			"type": "path",
+			"url": "ideas"
+		},
+		{
+			"type": "path",
+			"url": "admin-command"
+		},
+		{
+			"type": "path",
+			"url": "handbook"
+		},
+		{
+			"type": "path",
+			"url": "snapshot-command"
+		},
+		{
+			"type": "path",
+			"url": "media-command"
+		},
+		{
+			"type": "path",
+			"url": "find-command"
+		},
+		{
+			"type": "path",
+			"url": "cron-command"
+		},
+		{
+			"type": "path",
+			"url": "import-command"
+		},
+		{
+			"type": "path",
+			"url": "db-command"
+		},
+		{
+			"type": "path",
+			"url": "autoload-splitter"
+		},
+		{
+			"type": "path",
+			"url": "config-command"
+		},
+		{
+			"type": "path",
+			"url": "spyc"
+		},
+		{
+			"type": "path",
+			"url": "export-command"
+		},
+		{
+			"type": "path",
+			"url": "package-command"
+		},
+		{
+			"type": "path",
+			"url": "search-replace-command"
+		},
+		{
+			"type": "path",
+			"url": "shell-command"
+		},
+		{
+			"type": "path",
+			"url": "composer-changelogs"
+		},
+		{
+			"type": "path",
+			"url": "eval-command"
+		},
+		{
+			"type": "path",
+			"url": "scaffold-command"
+		},
+		{
+			"type": "path",
+			"url": "entity-command"
+		},
+		{
+			"type": "path",
+			"url": "extension-command"
+		},
+		{
+			"type": "path",
+			"url": "language-command"
+		},
+		{
+			"type": "path",
+			"url": "super-admin-command"
+		},
+		{
+			"type": "path",
+			"url": "rewrite-command"
+		},
+		{
+			"type": "path",
+			"url": "cache-command"
+		},
+		{
+			"type": "path",
+			"url": "checksum-command"
+		},
+		{
+			"type": "path",
+			"url": "widget-command"
+		},
+		{
+			"type": "path",
+			"url": "role-command"
+		},
+		{
+			"type": "path",
+			"url": "core-command"
+		},
+		{
+			"type": "path",
+			"url": "automated-tests"
+		},
+		{
+			"type": "path",
+			"url": "rpm-build"
+		},
+		{
+			"type": "path",
+			"url": "embed-command"
+		},
+		{
+			"type": "path",
+			"url": "wp-config-transformer"
+		},
+		{
+			"type": "path",
+			"url": "deb-build"
+		},
+		{
+			"type": "path",
+			"url": "i18n-command"
+		},
+		{
+			"type": "path",
+			"url": "dash-docset-generator"
+		},
+		{
+			"type": "path",
+			"url": "wp-cli-tests"
+		},
+		{
+			"type": "path",
+			"url": "regenerate-readme"
+		},
+		{
+			"type": "path",
+			"url": "wp-cli-bundle"
+		}
+	],
+	"require": {
+		"php": ">=5.4",
+		"ext-json": "*",
+		"wp-cli/admin-command": "dev-master",
+		"wp-cli/automated-tests": "dev-master",
+		"wp-cli/cache-command": "dev-master",
+		"wp-cli/checksum-command": "dev-master",
+		"wp-cli/config-command": "dev-master",
+		"wp-cli/core-command": "dev-master",
+		"wp-cli/cron-command": "dev-master",
+		"wp-cli/db-command": "dev-master",
+		"wp-cli/dist-archive-command": "dev-master",
+		"wp-cli/doctor-command": "dev-master",
+		"wp-cli/embed-command": "dev-master",
+		"wp-cli/entity-command": "dev-master",
+		"wp-cli/eval-command": "dev-master",
+		"wp-cli/export-command": "dev-master",
+		"wp-cli/extension-command": "dev-master",
+		"wp-cli/find-command": "dev-master",
+		"wp-cli/google-sitemap-generator-cli": "dev-master",
+		"wp-cli/i18n-command": "dev-master",
+		"wp-cli/import-command": "dev-master",
+		"wp-cli/language-command": "dev-master",
+		"wp-cli/media-command": "dev-master",
+		"wp-cli/mustangostang-spyc": "dev-master as 0.6.x-dev",
+		"wp-cli/package-command": "dev-master",
+		"wp-cli/php-cli-tools": "dev-master as 0.11.x-dev",
+		"wp-cli/profile-command": "dev-master",
+		"wp-cli/regenerate-readme": "dev-master",
+		"wp-cli/restful": "dev-master",
+		"wp-cli/rewrite-command": "dev-master",
+		"wp-cli/role-command": "dev-master",
+		"wp-cli/scaffold-command": "dev-master",
+		"wp-cli/scaffold-package-command": "dev-master",
+		"wp-cli/search-replace-command": "dev-master",
+		"wp-cli/server-command": "dev-master",
+		"wp-cli/shell-command": "dev-master",
+		"wp-cli/super-admin-command": "dev-master",
+		"wp-cli/widget-command": "dev-master",
+		"wp-cli/wp-cli": "dev-master",
+		"wp-cli/wp-cli-bundle": "dev-master",
+		"wp-cli/wp-cli-tests": "dev-master",
+		"wp-cli/wp-config-transformer": "dev-master as 1.2.x-dev",
+		"wp-cli/wp-super-cache-cli": "dev-master"
+	},
+	"require-dev": {
+		"roave/security-advisories": "dev-master"
+	},
+	"suggest": {
+		"psy/psysh": "Enhanced `wp shell` functionality"
+	},
+	"config": {
+		"platform": {
+			"php": "5.4"
+		},
+		"process-timeout": 7200,
+		"sort-packages": true
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "2.0.x-dev"
+		},
+        "commands": [
+            "maintenance",
+			"maintenance contrib-list",
+			"maintenance milestones-after",
+			"maintenance milestones-since",
+			"maintenance release-date",
+			"maintenance release-notes",
+			"maintenance replace-label"
+        ],
+		"readme": {
+            "sections": [
+	            "Installation",
+	            "Development",
+                "Using",
+                "Contributing",
+                "Support"
+            ],
+            "package_description": {
+                "post": ".readme-partials/DESCRIPTION.md"
+            },
+			"development": {
+                "body": ".readme-partials/DEVELOPMENT.md"
+            },
+			"installation": {
+                "body": ".readme-partials/INSTALLATION.md"
+            },
+            "show_powered_by": false
+        }
+    },
+	"autoload-dev": {
+		"psr-4": {
+			"WP_CLI\\Maintenance\\": ".maintenance/src/"
+		},
+		"files": [
+			".maintenance/bootstrap.php"
+		]
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"scripts": {
+		"pre-install-cmd": "php .maintenance/clone-all-repositories.php",
+		"pre-update-cmd": "php .maintenance/clone-all-repositories.php",
+		"behat": "run-behat-tests",
+		"behat-rerun": "rerun-behat-tests",
+		"lint": "run-linter-tests",
+		"phpcs": "run-phpcs-tests",
+		"phpunit": "run-php-unit-tests",
+		"prepare-tests": "install-package-tests",
+		"test": [
+			"@lint",
+			"@phpcs",
+			"@phpunit",
+			"@behat"
+		]
+	},
+	"support": {
+		"issues": "https://github.com/wp-cli/wp-cli-bundle/issues",
+		"source": "https://github.com/wp-cli/wp-cli-bundle",
+		"docs": "https://make.wordpress.org/cli/handbook/"
+	}
+}
