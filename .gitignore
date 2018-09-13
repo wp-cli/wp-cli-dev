@@ -5,3 +5,4 @@
 !/.readme-partials/
 
 composer.lock
+*.log
