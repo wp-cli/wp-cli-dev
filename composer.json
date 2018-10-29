@@ -325,6 +325,8 @@
 	"scripts": {
 		"pre-install-cmd": "php .maintenance/clone-all-repositories.php",
 		"pre-update-cmd": "php .maintenance/clone-all-repositories.php",
+		"post-install-cmd": "php .maintenance/symlink-vendor-folders.php",
+		"post-update-cmd": "php .maintenance/symlink-vendor-folders.php",
 		"behat": "run-behat-tests",
 		"behat-rerun": "rerun-behat-tests",
 		"lint": "run-linter-tests",
