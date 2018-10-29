@@ -11,10 +11,11 @@ $skip_list = array(
 	'wp-cli-dev',
 );
 
-$request      = 'https://api.github.com/orgs/wp-cli/repos?per_page=100';
-$response     = shell_exec( "curl -s {$request}" );
-$repositories = json_decode( $response );
-$pwd          = getcwd();
+$request        = 'https://api.github.com/orgs/wp-cli/repos?per_page=100';
+$response       = shell_exec( "curl -s {$request}" );
+$repositories   = json_decode( $response );
+$pwd            = getcwd();
+$update_folders = [];
 
 foreach ( $repositories as $repository ) {
 	if ( in_array( $repository->name, $skip_list, true ) ) {
@@ -22,10 +23,12 @@ foreach ( $repositories as $repository ) {
 	}
 
 	if ( ! is_dir( $repository->name ) ) {
-		printf( "Fetching \033[32mwp-cli/{$repository->name}\033[0m:\n" );
+		printf( "Fetching \033[32mwp-cli/{$repository->name}\033[0m...\n" );
 		system( "git clone {$repository->clone_url}" );
-	} else {
-		printf( "Updating \033[33mwp-cli/{$repository->name}\033[0m:\n" );
-		system( "cd {$repository->name} && git checkout master && git pull; cd {$pwd}" );
 	}
+
+	$update_folders[] = $repository->name;
 }
+
+$updates = implode( ' ', $update_folders );
+system( "echo $updates | xargs -n1 -P8 -I% php .maintenance/refresh-repository.php %" );

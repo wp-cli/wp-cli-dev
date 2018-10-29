@@ -10,3 +10,4 @@ This will:
 
 1. Clone all relevant packages from the `wp-cli` GitHub organization into the `wp-cli-dev` folder, and
 2. Install all Composer dependencies for a complete `wp-cli-bundle` setup, while symlinking all of the previously cloned packages into the Composer `vendor` folder.
+3. Symlink all folder in `vendor` into corresponding `vendor` folders in each repository, thus making the centralized functionality based on Composer available in each repository subfolder.

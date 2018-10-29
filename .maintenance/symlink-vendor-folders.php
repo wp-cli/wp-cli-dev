@@ -6,7 +6,7 @@ $symlinks     = glob( 'vendor/*', GLOB_ONLYDIR );
 
 foreach ( $repositories as $repository ) {
 	if ( ! is_dir( "{$repository}/vendor" ) && is_file( "{$repository}/composer.json" ) ) {
-		printf( "Symlinking \033[33mwp-cli/{$repository}/vendor\033[0m folder:\n" );
+		printf( "Symlinking \033[33mwp-cli/{$repository}/vendor\033[0m folder...\n" );
 
 		// We don't symlink the vendor folder directly, but rather create a real
 		// vendor folder and symlink each of the subfolders instead.
