@@ -16,5 +16,8 @@ foreach ( $repositories as $repository ) {
 			// Symlink entries already contain the `vendor/` folder suffix.
 			symlink( "../../{$symlink}", "{$repository}/{$symlink}" );
 		}
+
+		// Symlink the autoloader as well so commands can be properly loaded.
+		symlink( "../../vendor/autoload.php", "{$repository}/vendor/autoload.php" );
 	}
 }
