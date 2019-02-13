@@ -27,5 +27,8 @@ foreach ( $repositories as $repository ) {
 		system( "git clone {$repository->clone_url}" );
 	}
 	
-    	system( "php .maintenance/refresh-repository.php " . $repository->name . " > /dev/null" );
+	$update_folders[] = $repository->name;
 }
+
+$updates = implode( '\n', $update_folders );
+system( "echo '$updates' | xargs -n1 -P8 -I% php .maintenance/refresh-repository.php %" );
