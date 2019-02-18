@@ -26,9 +26,9 @@ foreach ( $repositories as $repository ) {
 		printf( "Fetching \033[32mwp-cli/{$repository->name}\033[0m...\n" );
 		system( "git clone {$repository->clone_url}" );
 	}
-
+	
 	$update_folders[] = $repository->name;
 }
 
-$updates = implode( ' ', $update_folders );
-system( "echo $updates | xargs -n1 -P8 -I% php .maintenance/refresh-repository.php %" );
+$updates = implode( '\n', $update_folders );
+system( "echo '$updates' | xargs -n1 -P8 -I% php .maintenance/refresh-repository.php %" );
