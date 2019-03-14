@@ -24,7 +24,7 @@ foreach ( $repositories as $repository ) {
 
 	if ( ! is_dir( $repository->name ) ) {
 		printf( "Fetching \033[32mwp-cli/{$repository->name}\033[0m...\n" );
-		system( "git clone {$repository->clone_url}" );
+		system( "git clone {$repository->ssh_url}" );
 	}
 	
 	$update_folders[] = $repository->name;
