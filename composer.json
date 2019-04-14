@@ -219,6 +219,10 @@
 		{
 			"type": "path",
 			"url": "wp-cli-bundle"
+		},
+		{
+			"type": "path",
+			"url": "maintenance-mode-command"
 		}
 	],
 	"require": {
@@ -264,7 +268,8 @@
 		"wp-cli/wp-cli-bundle": "dev-master",
 		"wp-cli/wp-cli-tests": "dev-master",
 		"wp-cli/wp-config-transformer": "dev-master as 1.2.x-dev",
-		"wp-cli/wp-super-cache-cli": "dev-master"
+		"wp-cli/wp-super-cache-cli": "dev-master",
+		"wp-cli/maintenance-mode-command": "dev-master"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-master"
