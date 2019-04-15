@@ -248,6 +248,7 @@
 		"wp-cli/i18n-command": "dev-master",
 		"wp-cli/import-command": "dev-master",
 		"wp-cli/language-command": "dev-master",
+		"wp-cli/maintenance-mode-command": "dev-master",
 		"wp-cli/media-command": "dev-master",
 		"wp-cli/mustangostang-spyc": "dev-master as 0.6.x-dev",
 		"wp-cli/package-command": "dev-master",
@@ -268,8 +269,7 @@
 		"wp-cli/wp-cli-bundle": "dev-master",
 		"wp-cli/wp-cli-tests": "dev-master",
 		"wp-cli/wp-config-transformer": "dev-master as 1.2.x-dev",
-		"wp-cli/wp-super-cache-cli": "dev-master",
-		"wp-cli/maintenance-mode-command": "dev-master"
+		"wp-cli/wp-super-cache-cli": "dev-master"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-master"
