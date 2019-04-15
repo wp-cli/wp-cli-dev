@@ -219,6 +219,10 @@
 		{
 			"type": "path",
 			"url": "wp-cli-bundle"
+		},
+		{
+			"type": "path",
+			"url": "maintenance-mode-command"
 		}
 	],
 	"require": {
@@ -244,6 +248,7 @@
 		"wp-cli/i18n-command": "dev-master",
 		"wp-cli/import-command": "dev-master",
 		"wp-cli/language-command": "dev-master",
+		"wp-cli/maintenance-mode-command": "dev-master",
 		"wp-cli/media-command": "dev-master",
 		"wp-cli/mustangostang-spyc": "dev-master as 0.6.x-dev",
 		"wp-cli/package-command": "dev-master",
