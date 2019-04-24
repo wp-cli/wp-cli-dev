@@ -209,7 +209,7 @@ Once you’ve done a bit of searching and discovered there isn’t an open or fi
 
 Want to contribute a new feature? Please first [open a new issue](https://github.com/wp-cli/wp-cli-dev/issues/new) to discuss whether the feature is a good fit for the project.
 
-Once you've decided to commit the time to see your pull request through, [please follow our guidelines for creating a pull request](https://make.wordpress.org/cli/handbook/pull-requests/) to make sure it's a pleasant experience. See "[Setting up](https://make.wordpress.org/cli/handbook/pull-requests/#setting-up)" for details specific to working on this package locally.
+Once you've decided to commit the time to seeing your pull request through, [please follow our guidelines for creating a pull request](https://make.wordpress.org/cli/handbook/pull-requests/) to make sure it's a pleasant experience. See "[Setting up](https://make.wordpress.org/cli/handbook/pull-requests/#setting-up)" for details specific to working on this package locally.
 
 ## Support
 
