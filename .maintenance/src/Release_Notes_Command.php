@@ -266,7 +266,7 @@ final class Release_Notes_Command {
 			$template,
 			$this->format_title( $pull_request->title, $format ),
 			$pull_request->number,
-			$pull_request->url
+			$pull_request->html_url
 		);
 	}
 
