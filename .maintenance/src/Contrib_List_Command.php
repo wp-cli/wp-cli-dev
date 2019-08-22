@@ -47,18 +47,16 @@ final class Contrib_List_Command {
 
 		// Identify all command dependencies and their contributors
 
-		// TODO: Bundle repo needs to be switched to `wp-cli/wp-cli-bundle` for next release.
-		$bundle = 'wp-cli/wp-cli';
+		$bundle = 'wp-cli/wp-cli-bundle';
 
-		$milestones = GitHub::get_project_milestones( 'wp-cli/wp-cli', array( 'state' => 'closed' ) );
-		// Cheap way to get the latest closed milestone
-		$milestone = array_shift( $milestones );
-		$tag = is_object( $milestone ) ? "v{$milestone->title}" : 'master';
-
-		// TODO: Only needed for switch from v1 to v2.
-		if ( 'wp-cli/wp-cli' === $bundle ) {
-			$tag = 'v1.5.1';
-		}
+		$milestones = GitHub::get_project_milestones( $bundle, array( 'state' => 'closed' ) );
+		$milestone = array_reduce(
+			$milestones,
+			function ( $tag, $milestone ) {
+				return version_compare( $milestone->title, $tag, '>' ) ? $milestone->title : $tag;
+			}
+		);
+		$tag = ! empty( $milestone ) ? "v{$milestone}" : 'master';
 
 		$composer_lock_url = sprintf( 'https://raw.githubusercontent.com/%s/%s/composer.lock', $bundle, $tag );
 		WP_CLI::log( 'Fetching ' . $composer_lock_url );

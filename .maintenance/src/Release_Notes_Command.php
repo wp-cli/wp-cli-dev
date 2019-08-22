@@ -77,11 +77,19 @@ final class Release_Notes_Command {
 			) as $repo
 		) {
 			$milestones = GitHub::get_project_milestones( $repo );
-			// Cheap way to get the latest milestone
-			$milestone = array_shift( $milestones );
+			$milestone = array_reduce(
+				$milestones,
+				function ( $latest, $milestone ) {
+					return version_compare( $milestone->title, $latest, '>' ) ? $milestone : $latest;
+				}
+			);
+
 			if ( ! $milestone ) {
+				WP_CLI::debug( "No milestone found for repo '{$repo}'", 'release-notes' );
 				continue;
 			}
+
+			WP_CLI::debug( "Using milestone '{$milestone->title}' for repo '{$repo}'", 'release-notes' );
 
 			WP_CLI::log( $this->repo_heading( $repo, $format ) );
 
@@ -95,21 +103,21 @@ final class Release_Notes_Command {
 
 		// Identify all command dependencies and their release notes
 
-		// TODO: Bundle repo needs to be switched to `wp-cli/wp-cli-bundle` for next release.
-		$bundle = 'wp-cli/wp-cli';
+		$bundle = 'wp-cli/wp-cli-bundle';
 
 		$milestones = GitHub::get_project_milestones(
-			'wp-cli/wp-cli',
+			$bundle,
 			array( 'state' => 'closed' )
 		);
-		// Cheap way to get the latest closed milestone
-		$milestone = array_shift( $milestones );
-		$tag       = is_object( $milestone ) ? "v{$milestone->title}" : 'master';
 
-		// TODO: Only needed for switch from v1 to v2.
-		if ( 'wp-cli/wp-cli' === $bundle ) {
-			$tag = 'v1.5.1';
-		}
+		$milestone = array_reduce(
+			$milestones,
+			function ( $tag, $milestone ) {
+				return version_compare( $milestone->title, $tag, '>' ) ? $milestone->title : $tag;
+			}
+		);
+
+		$tag = ! empty( $milestone ) ? "v{$milestone}" : 'master';
 
 		$composer_lock_url = sprintf( 'https://raw.githubusercontent.com/%s/%s/composer.lock',
 			$bundle, $tag );
@@ -120,11 +128,6 @@ final class Release_Notes_Command {
 		}
 		$composer_json = json_decode( $response->body, true );
 
-		// TODO: Only need for initial v2.
-		$composer_json['packages'][] = array(
-			'name'    => 'wp-cli/i18n-command',
-			'version' => 'v2',
-		);
 		usort( $composer_json['packages'], function ( $a, $b ) {
 			return $a['name'] < $b['name'] ? - 1 : 1;
 		} );
@@ -213,6 +216,9 @@ final class Release_Notes_Command {
 
 		$entries = array();
 		foreach ( $milestones as $milestone ) {
+
+			WP_CLI::debug( "Using milestone '{$milestone->title}' for repo '{$repo}'", 'release-notes' );
+
 			switch ( $source ) {
 				case 'release':
 					$tag = 0 === strpos( $milestone->title, 'v' )
