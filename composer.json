@@ -26,10 +26,6 @@
 		},
 		{
 			"type": "path",
-			"url": "sample-plugin"
-		},
-		{
-			"type": "path",
 			"url": "google-sitemap-generator-cli"
 		},
 		{
