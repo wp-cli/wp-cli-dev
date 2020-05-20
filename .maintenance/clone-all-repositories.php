@@ -9,6 +9,7 @@ $skip_list = array(
 	'sample-plugin',
 	'snapshot-command',
 	'wp-cli-dev',
+	'wp-cli-roadmap',
 );
 
 $request        = 'https://api.github.com/orgs/wp-cli/repos?per_page=100';
