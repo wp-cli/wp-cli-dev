@@ -31,6 +31,70 @@ class GitHub {
 	}
 
 	/**
+	 * Gets the releases for a given project.
+	 *
+	 * @param string $project
+	 *
+	 * @return array
+	 */
+	public static function get_project_releases(
+		$project,
+		$args = array()
+	) {
+		$request_url = sprintf(
+			self::API_ROOT . 'repos/%s/releases',
+			$project
+		);
+
+		$args['per_page'] = 100;
+
+		list( $body, $headers ) = self::request( $request_url, $args );
+
+		return $body;
+	}
+
+	/**
+	 * Gets the releases for a given project.
+	 *
+	 * @param string $project
+	 *
+	 * @return array
+	 */
+	public static function create_release(
+		$project,
+		$tag_name,
+		$target_commitish,
+		$name,
+		$body,
+		$draft = false,
+		$prerelease = false,
+		$args = []
+	) {
+		$request_url = sprintf(
+			self::API_ROOT . 'repos/%s/releases',
+			$project
+		);
+
+		$args = array_merge(
+			$args,
+			[
+				'tag_name'         => (string) $tag_name,
+				'target_commitish' => (string) $target_commitish,
+				'name'             => (string) $name,
+				'body'             => (string) $body,
+				'draft'            => (bool) $draft,
+				'prerelease'       => (bool) $prerelease,
+			]
+		);
+
+		$headers['http_verb'] = 'POST';
+
+		list( $body, $headers ) = self::request( $request_url, $args, $headers );
+
+		return $body;
+	}
+
+	/**
 	 * Gets a release for a given project by its tag name.
 	 *
 	 * @param string $project
@@ -116,6 +180,35 @@ class GitHub {
 	}
 
 	/**
+	 * Close a milestone.
+	 *
+	 * @param string $project
+	 * @param string $milestone
+	 *
+	 * @return array|false
+	 */
+	public static function close_milestone(
+		$project,
+		$milestone
+	) {
+		$request_url = sprintf(
+			self::API_ROOT . 'repos/%s/milestones/%s',
+			$project,
+			$milestone
+		);
+
+		$headers['http_verb'] = 'PATCH';
+
+		$args = [
+			'state' => 'closed',
+		];
+
+		list( $body, $headers ) = self::request( $request_url, $args, $headers );
+
+		return $body;
+	}
+
+	/**
 	 * Adds a label to an issue.
 	 *
 	 * @param string $project
@@ -167,8 +260,6 @@ class GitHub {
 			$project,
 			$label
 		);
-
-		$headers['http_verb'] = 'DELETE';
 
 		list( $body, $headers ) = self::request( $request_url, $args, $headers );
 
@@ -245,6 +336,56 @@ class GitHub {
 	}
 
 	/**
+	 * Get latest release.
+	 *
+	 * @param string $project
+	 *
+	 * @return string
+	 */
+	public static function get_latest_release( $project ) {
+		$request_url = sprintf(
+			self::API_ROOT . 'repos/%s/releases/latest',
+			$project
+		);
+
+		$args = array(
+			'per_page'  => 100,
+			'state'     => 'all',
+		);
+
+		list( $body, $headers ) = self::request( $request_url, $args );
+
+		return $body;
+	}
+
+	/**
+	 * Get issues/PRs.
+	 *
+	 * @param string $project
+	 * @param array  $args
+	 *
+	 * @return string
+	 */
+	public static function get_issues( $project, $args = [] ) {
+		$request_url = sprintf(
+			self::API_ROOT . 'repos/%s/issues',
+			$project
+		);
+
+		$args = array_merge(
+			[
+				'per_page'  => 100,
+				'state'     => 'all',
+			],
+			$args
+		);
+
+		list( $body, $headers ) = self::request( $request_url, $args );
+
+		return $body;
+	}
+
+	/**
 	 * Makes a request to the GitHub API.
 	 *
 	 * @param string $url
@@ -275,7 +416,7 @@ class GitHub {
 			unset( $headers['http_verb'] );
 		}
 
-		if ( 'POST' === $verb ) {
+		if ( 'POST' === $verb || 'PATCH' === $verb ) {
 			$args = json_encode( $args );
 		}
 
