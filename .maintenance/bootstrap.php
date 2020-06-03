@@ -6,7 +6,7 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 
 WP_CLI::add_command( 'maintenance', 'WP_CLI\Maintenance\Maintenance_Namespace' );
 
-WP_CLI::add_command( 'maintenance contrib-list', 'WP_CLI\Maintenance\Contrib_list_Command' );
+WP_CLI::add_command( 'maintenance contrib-list', 'WP_CLI\Maintenance\Contrib_List_Command' );
 WP_CLI::add_command( 'maintenance milestones-after', 'WP_CLI\Maintenance\Milestones_After_Command' );
 WP_CLI::add_command( 'maintenance milestones-since', 'WP_CLI\Maintenance\Milestones_Since_Command' );
 WP_CLI::add_command( 'maintenance release', 'WP_CLI\Maintenance\Release_Command' );
