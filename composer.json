@@ -26,19 +26,11 @@
 		},
 		{
 			"type": "path",
-			"url": "sample-plugin"
-		},
-		{
-			"type": "path",
 			"url": "google-sitemap-generator-cli"
 		},
 		{
 			"type": "path",
 			"url": "wp-super-cache-cli"
-		},
-		{
-			"type": "path",
-			"url": "package-index"
 		},
 		{
 			"type": "path",
@@ -66,19 +58,11 @@
 		},
 		{
 			"type": "path",
-			"url": "ideas"
-		},
-		{
-			"type": "path",
 			"url": "admin-command"
 		},
 		{
 			"type": "path",
 			"url": "handbook"
-		},
-		{
-			"type": "path",
-			"url": "snapshot-command"
 		},
 		{
 			"type": "path",
@@ -99,10 +83,6 @@
 		{
 			"type": "path",
 			"url": "db-command"
-		},
-		{
-			"type": "path",
-			"url": "autoload-splitter"
 		},
 		{
 			"type": "path",
@@ -127,10 +107,6 @@
 		{
 			"type": "path",
 			"url": "shell-command"
-		},
-		{
-			"type": "path",
-			"url": "composer-changelogs"
 		},
 		{
 			"type": "path",
@@ -203,10 +179,6 @@
 		{
 			"type": "path",
 			"url": "i18n-command"
-		},
-		{
-			"type": "path",
-			"url": "dash-docset-generator"
 		},
 		{
 			"type": "path",
