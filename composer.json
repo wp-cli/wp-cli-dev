@@ -186,10 +186,6 @@
 		},
 		{
 			"type": "path",
-			"url": "regenerate-readme"
-		},
-		{
-			"type": "path",
 			"url": "wp-cli-bundle"
 		},
 		{
@@ -226,7 +222,6 @@
 		"wp-cli/package-command": "dev-master",
 		"wp-cli/php-cli-tools": "dev-master as 0.11.x-dev",
 		"wp-cli/profile-command": "dev-master",
-		"wp-cli/regenerate-readme": "dev-master",
 		"wp-cli/restful": "dev-master",
 		"wp-cli/rewrite-command": "dev-master",
 		"wp-cli/role-command": "dev-master",
