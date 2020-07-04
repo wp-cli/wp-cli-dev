@@ -186,10 +186,6 @@
 		},
 		{
 			"type": "path",
-			"url": "regenerate-readme"
-		},
-		{
-			"type": "path",
 			"url": "wp-cli-bundle"
 		},
 		{
@@ -198,7 +194,7 @@
 		}
 	],
 	"require": {
-		"php": ">=5.6",
+		"php": ">=5.6.20",
 		"ext-json": "*",
 		"wp-cli/admin-command": "dev-master",
 		"wp-cli/automated-tests": "dev-master",
@@ -226,7 +222,6 @@
 		"wp-cli/package-command": "dev-master",
 		"wp-cli/php-cli-tools": "dev-master as 0.11.x-dev",
 		"wp-cli/profile-command": "dev-master",
-		"wp-cli/regenerate-readme": "dev-master",
 		"wp-cli/restful": "dev-master",
 		"wp-cli/rewrite-command": "dev-master",
 		"wp-cli/role-command": "dev-master",
@@ -241,7 +236,9 @@
 		"wp-cli/wp-cli-bundle": "dev-master",
 		"wp-cli/wp-cli-tests": "dev-master",
 		"wp-cli/wp-config-transformer": "dev-master as 1.2.x-dev",
-		"wp-cli/wp-super-cache-cli": "dev-master"
+		"wp-cli/wp-super-cache-cli": "dev-master",
+		"johnpbloch/wordpress-core-installer": "^1.0 || ^2.0",
+		"johnpbloch/wordpress-core": "dev-master"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-master"
@@ -251,7 +248,7 @@
 	},
 	"config": {
 		"platform": {
-			"php": "5.6"
+			"php": "5.6.20"
 		},
 		"process-timeout": 7200,
 		"sort-packages": true
@@ -287,7 +284,8 @@
                 "body": ".readme-partials/INSTALLATION.md"
             },
             "show_powered_by": false
-        }
+        },
+		"wordpress-install-dir": "wordpress-core"
     },
 	"autoload-dev": {
 		"psr-4": {
