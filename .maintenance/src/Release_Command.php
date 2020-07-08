@@ -17,6 +17,8 @@ final class Release_Command {
 	 * [--bundle]
 	 * : Close the milestones for the entire bundle.
 	 *
+	 * [--all]
+	 * : Close the milestones for all repositories in the wp-cli organization.
 	 *
 	 * @subcommand close-released
 	 * @when       before_wp_load
@@ -25,7 +27,9 @@ final class Release_Command {
 
 		$repos = (array) $args;
 
-		if ( Utils\get_flag_value( $assoc_args, 'bundle', false ) ) {
+		if ( Utils\get_flag_value( $assoc_args, 'all', false ) ) {
+			$repos = array_unique( array_merge( $repos, $this->get_bundle_repos() ) );
+		} elseif ( Utils\get_flag_value( $assoc_args, 'bundle', false ) ) {
 			$repos = array_unique( array_merge( $repos, $this->get_bundle_repos() ) );
 		}
 
@@ -63,13 +67,18 @@ final class Release_Command {
 	 * [--bundle]
 	 * : Generate releases for the entire bundle.
 	 *
+	 * [--all]
+	 * : Generate releases for all repositories in the wp-cli organization.
+	 *
 	 * @when before_wp_load
 	 */
 	public function generate( $args, $assoc_args ) {
 
 		$repos = (array) $args;
 
-		if ( Utils\get_flag_value( $assoc_args, 'bundle', false ) ) {
+		if ( Utils\get_flag_value( $assoc_args, 'all', false ) ) {
+			$repos = array_unique( array_merge( $repos, $this->get_all_repos() ) );
+		} elseif ( Utils\get_flag_value( $assoc_args, 'bundle', false ) ) {
 			$repos = array_unique( array_merge( $repos, $this->get_bundle_repos() ) );
 		}
 
@@ -106,7 +115,12 @@ final class Release_Command {
 				WP_CLI::log( '-----' );
 				WP_CLI::log( "{$title} ({$tag})\n{$release_notes}" );
 				WP_CLI::log( '-----' );
-				WP_CLI::confirm( 'Is the above correct?' );
+
+				fwrite( STDOUT, 'Is the above correct?' . ' [y/n] ' );
+				$answer = strtolower( trim( fgets( STDIN ) ) );
+				if ( 'y' !== $answer ) {
+					continue 2;
+				}
 
 				WP_CLI::log( "Creating release {$title} {$tag}..." );
 				GitHub::create_release( $repo, $tag, 'master', $title, $release_notes );
@@ -242,6 +256,24 @@ final class Release_Command {
 				: '#### [%1$s](%2$s)' . PHP_EOL,
 			$repo,
 			"https://github.com/{$repo}/"
+		);
+	}
+
+	private function get_all_repos( $exclude = null ) {
+		return array_map(
+			static function ( $repo ) {
+				return $repo->full_name;
+			},
+			array_filter(
+				GitHub::get_organization_repos(),
+				static function ( $repo ) use ( $exclude ) {
+					if ( null === $exclude ) {
+						return $repo->archived === false && $repo->disabled === false;
+					}
+
+					return ! in_array( $repo->full_name, (array) $exclude, true );
+				}
+			)
 		);
 	}
 

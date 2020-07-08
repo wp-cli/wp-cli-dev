@@ -1,5 +1,6 @@
 <?php namespace WP_CLI\Maintenance;
 
+use stdClass;
 use WP_CLI;
 use WP_CLI\Utils;
 
@@ -376,6 +377,31 @@ class GitHub {
 			[
 				'per_page'  => 100,
 				'state'     => 'all',
+			],
+			$args
+		);
+
+		list( $body, $headers ) = self::request( $request_url, $args );
+
+		return $body;
+	}
+
+	/**
+	 * Get all repositories of the wp-cli organization.
+	 *
+	 * @param array  $args
+	 *
+	 * @return stdClass[]
+	 */
+	public static function get_organization_repos( $args = [] ) {
+		$request_url = self::API_ROOT . 'orgs/wp-cli/repos';
+
+		$args = array_merge(
+			[
+				'per_page'  => 100,
+				'state'     => 'all',
+				'sort'      => 'full_name',
+				'direction' => 'asc',
 			],
 			$args
 		);
