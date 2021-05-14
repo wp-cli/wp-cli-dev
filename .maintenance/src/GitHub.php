@@ -272,12 +272,14 @@ class GitHub {
 	 *
 	 * @param string  $project
 	 * @param integer $milestone_id
+     * @param bool    $only_merged
 	 *
 	 * @return array
 	 */
 	public static function get_project_milestone_pull_requests(
 		$project,
-		$milestone_id
+		$milestone_id,
+        $only_merged = true
 	) {
 		$request_url = sprintf(
 			self::API_ROOT . 'repos/%s/issues',
@@ -295,7 +297,11 @@ class GitHub {
 			list( $body, $headers ) = self::request( $request_url, $args );
 			foreach ( $body as $issue ) {
 				if ( ! empty( $issue->pull_request ) ) {
-					$pull_requests[] = $issue;
+					//if ( ! $only_merged || self::was_pull_request_merged( $project, $issue->number ) ) {
+						$pull_requests[] = $issue;
+					//} else {
+					    //WP_CLI::warning( "Skipping PR {$issue->number} ({$issue->title}), as it was not merged." );
+                    //}
 				}
 			}
 			$args        = array();
@@ -314,6 +320,26 @@ class GitHub {
 		} while ( $request_url );
 
 		return $pull_requests;
+	}
+
+    /**
+     * Check whether a specific pull request was actually merged.
+     *
+     * @param $project
+     * @param $pull_request_number
+     * @return bool
+     */
+    public static function was_pull_request_merged( $project, $pull_request_number )
+    {
+        $request_url = sprintf(
+            self::API_ROOT . 'repos/%s/pulls/%s',
+            $project,
+            $pull_request_number
+        );
+
+        list( $body, $headers ) = self::request( $request_url );
+
+        return ! empty( $body->merged_at );
 	}
 
 	/**

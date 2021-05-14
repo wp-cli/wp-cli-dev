@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+BUNDLE_DEPENDENCIES=$(curl --silent https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/master/composer.json -q | jq '.["require"] | keys[]' )
+BUNDLE_DEPENDENCIES=$(echo "wp-cli/wp-cli-bundle $BUNDLE_DEPENDENCIES")
+
+for NAME in $BUNDLE_DEPENDENCIES; do
+
+	REPO=$(echo $NAME | tr -d '"')
+	case $REPO in wp-cli/*)
+	    export REPO=$(echo "$REPO" | sed -e "s|^wp-cli/||")
+	    if [ -d "$REPO" ]; then
+			OLDPWD="$(pwd)"
+			cd "$REPO"
+			echo "--- $REPO : ---"
+			"$@"
+			cd "$OLDPWD"
+		fi
+	esac
+done
+

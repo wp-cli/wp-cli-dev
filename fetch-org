@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+REPOLIST=$(curl --silent https://api.github.com/orgs/wp-cli/repos\?per_page=100 -q | jq '.[].name')
+
+for NAME in $REPOLIST; do
+	REPO=$(echo $NAME | tr -d '"')
+    if [ ! -d "$REPO" ]; then
+		git clone "https://github.com/wp-cli/$REPO"
+	fi
+done
