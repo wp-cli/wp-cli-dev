@@ -40,8 +40,7 @@ final class Release_Notes_Command {
 	 */
 	public function __invoke( $args, $assoc_args ) {
 
-		$repo            = null;
-		$milestone_names = null;
+		$repo = null;
 
 		if ( count( $args ) > 0 ) {
 			$repo = array_shift( $args );
@@ -67,7 +66,7 @@ final class Release_Notes_Command {
 	}
 
 	private function get_bundle_release_notes( $source, $format ) {
-		// Get the release notes for the current open large project milestones.
+		// Get the release notes for the lowest open project milestones.
 		foreach (
 			array(
 				'wp-cli/wp-cli-bundle',
@@ -79,8 +78,11 @@ final class Release_Notes_Command {
 			$milestones = GitHub::get_project_milestones( $repo );
 			$milestone = array_reduce(
 				$milestones,
-				function ( $latest, $milestone ) {
-					return version_compare( $milestone->title, $latest, '>' ) ? $milestone : $latest;
+				static function ( $latest, $milestone ) {
+					if ( $latest === null ) {
+						return $milestone;
+					}
+					return version_compare( $milestone->title, $latest->title, '<' ) ? $milestone : $latest;
 				}
 			);
 
