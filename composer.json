@@ -242,7 +242,7 @@
 		"johnpbloch/wordpress-core": "dev-master"
 	},
 	"require-dev": {
-		"roave/security-advisories": "dev-master"
+		"roave/security-advisories": "dev-latest"
 	},
 	"suggest": {
 		"psy/psysh": "Enhanced `wp shell` functionality"
