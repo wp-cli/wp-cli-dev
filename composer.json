@@ -205,7 +205,7 @@
 		"wp-cli/core-command": "dev-master",
 		"wp-cli/cron-command": "dev-master",
 		"wp-cli/db-command": "dev-master",
-		"wp-cli/dist-archive-command": "dev-master",
+		"wp-cli/dist-archive-command": "dev-main",
 		"wp-cli/doctor-command": "dev-main",
 		"wp-cli/embed-command": "dev-main",
 		"wp-cli/entity-command": "dev-master",
