@@ -13,11 +13,20 @@ $skip_list = array(
 );
 
 $request        = 'https://api.github.com/orgs/wp-cli/repos?per_page=100';
+$headers        = '';
+$token          = getenv( 'GITHUB_TOKEN' );
+if (!empty($token)) {
+$headers = '--header "Authorization: token $token"';
+$response       = shell_exec( "curl -s {$headers} {$request}" );
+}
+else
+{
 $response       = shell_exec( "curl -s {$request}" );
+}
 $repositories   = json_decode( $response );
 if ( ! is_array( $repositories ) && property_exists( $repositories, 'message' ) ) {
 	echo "GitHub responded with: " . $repositories->message . "\n";
-	echo "If you are running into a rate limiting issue during large events please consider using a different network to install the wp-cli development environment.\n";
+	echo "If you are running into a rate limiting issue during large events please set GITHUB_TOKEN enviroment variable.\n";
 	exit( 1 );
 }
 
