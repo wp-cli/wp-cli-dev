@@ -26,7 +26,7 @@ $response       = shell_exec( "curl -s {$request}" );
 $repositories   = json_decode( $response );
 if ( ! is_array( $repositories ) && property_exists( $repositories, 'message' ) ) {
 	echo "GitHub responded with: " . $repositories->message . "\n";
-	echo "If you are running into a rate limiting issue during large events please set GITHUB_TOKEN enviroment variable.\n";
+	echo "If you are running into a rate limiting issue during large events please set GITHUB_TOKEN environment variable.\n";
 	exit( 1 );
 }
 
