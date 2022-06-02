@@ -15,6 +15,12 @@ $skip_list = array(
 $request        = 'https://api.github.com/orgs/wp-cli/repos?per_page=100';
 $response       = shell_exec( "curl -s {$request}" );
 $repositories   = json_decode( $response );
+if ( ! is_array( $repositories ) && property_exists( $repositories, 'message' ) ) {
+	echo "GitHub responded with: " . $repositories->message . "\n";
+	echo "If you are running into a rate limiting issue during large events please consider using a different network to install the wp-cli development environment.\n";
+	exit( 1 );
+}
+
 $pwd            = getcwd();
 $update_folders = [];
 
