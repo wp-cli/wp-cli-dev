@@ -223,7 +223,7 @@
 		"wp-cli/package-command": "dev-main",
 		"wp-cli/php-cli-tools": "dev-master as 0.11.x-dev",
 		"wp-cli/profile-command": "dev-master",
-		"wp-cli/restful": "dev-master",
+		"wp-cli/restful": "dev-main",
 		"wp-cli/rewrite-command": "dev-main",
 		"wp-cli/role-command": "dev-main",
 		"wp-cli/scaffold-command": "dev-master",
