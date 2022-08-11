@@ -248,9 +248,6 @@
         "psy/psysh": "Enhanced `wp shell` functionality"
     },
     "config": {
-        "platform": {
-            "php": "5.6.20"
-        },
         "process-timeout": 7200,
         "sort-packages": true,
         "allow-plugins": {
