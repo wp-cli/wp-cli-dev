@@ -227,7 +227,7 @@
         "wp-cli/rewrite-command": "dev-main",
         "wp-cli/role-command": "dev-main",
         "wp-cli/scaffold-command": "dev-master",
-        "wp-cli/scaffold-package-command": "dev-master",
+        "wp-cli/scaffold-package-command": "dev-main",
         "wp-cli/search-replace-command": "dev-master",
         "wp-cli/server-command": "dev-main",
         "wp-cli/shell-command": "dev-main",
