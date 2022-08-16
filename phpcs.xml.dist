@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="WP-CLI">
-	<description>Custom ruleset for WP-CLI</description>
+<ruleset name="WP-CLI-Dev">
+	<description>Custom ruleset for the WP-CLI development environment</description>
 
 	<!--
 	#############################################################################
