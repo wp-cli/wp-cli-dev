@@ -11,7 +11,7 @@
 	-->
 
 	<!-- What to scan. -->
-	<file>.</file>
+	<file>./.maintenance/</file>
 
 	<!-- Ignoring select files/folders.
 		 https://github.com/squizlabs/PHP_CodeSniffer/wiki/Advanced-Usage#ignoring-files-and-folders -->
