@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
+#
+# Execute a command in each subfolder.
+#
 
-BUNDLE_DEPENDENCIES=$(curl --silent https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/master/composer.json -q | jq '.["require"] | keys[]' )
-BUNDLE_DEPENDENCIES=$(echo "wp-cli/wp-cli-bundle $BUNDLE_DEPENDENCIES")
+get_bundle_dependencies()
+{
+	echo "wp-cli/wp-cli-bundle"
+	curl --silent "https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/master/composer.json" \
+		| jq --raw-output '."require" | keys[] | select(startswith("wp-cli/"))'
+}
 
-for NAME in $BUNDLE_DEPENDENCIES; do
+while read -r dependency; do
+	# Remove wp-cli/ prefix
+    repo_path="${dependency:7}"
+    if [ ! -d "${repo_path}" ]; then
+		continue
+	fi
 
-	REPO=$(echo $NAME | tr -d '"')
-	case $REPO in wp-cli/*)
-	    export REPO=$(echo "$REPO" | sed -e "s|^wp-cli/||")
-	    if [ -d "$REPO" ]; then
-			OLDPWD="$(pwd)"
-			cd "$REPO"
-			echo "--- $REPO : ---"
-			"$@"
-			cd "$OLDPWD"
-		fi
-	esac
-done
-
+	echo "--- ${repo_path}: ---"
+	cd "${repo_path}"
+	bash -c "$@"
+	cd -
+done <<< "$(get_bundle_dependencies)"
