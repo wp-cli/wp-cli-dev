@@ -197,7 +197,7 @@
         "php": ">=5.6.20",
         "ext-json": "*",
         "ext-dom": "*",
-        "wp-cli/admin-command": "dev-master",
+        "wp-cli/admin-command": "dev-main",
         "wp-cli/automated-tests": "dev-main",
         "wp-cli/cache-command": "dev-main",
         "wp-cli/checksum-command": "dev-main",
