@@ -126,7 +126,7 @@ final class Contrib_List_Command {
                     return version_compare( $milestone->title, $tag, '>' ) ? $milestone->title : $tag;
                 }
             );
-            $tag = ! empty( $milestone ) ? "v{$milestone}" : 'master';
+            $tag = ! empty( $milestone ) ? "v{$milestone}" : GitHub::get_default_branch( $bundle );
 
             $composer_lock_url = sprintf( 'https://raw.githubusercontent.com/%s/%s/composer.lock', $bundle, $tag );
             WP_CLI::log( 'Fetching ' . $composer_lock_url );
