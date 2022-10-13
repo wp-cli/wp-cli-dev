@@ -40,9 +40,10 @@ foreach ( $repositories as $repository ) {
 
 	if ( ! is_dir( $repository->name ) ) {
 		printf( "Fetching \033[32mwp-cli/{$repository->name}\033[0m...\n" );
-		system( "git clone {$repository->ssh_url}" );
+		$clone_url = getenv( 'GITHUB_ACTION' ) ? $repository->clone_url : $repository->ssh_url;
+		system( "git clone {$clone_url}" );
 	}
-	
+
 	$update_folders[] = $repository->name;
 }
 
