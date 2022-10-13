@@ -46,7 +46,7 @@ final class Release_Command {
 			foreach ( $milestones as $milestone ) {
 				WP_CLI::log( "Checking milestone '{$milestone->title}'..." );
 				foreach ( $releases as $release ) {
-					if ( $release->tag_name === $milestone->title || $release->tag_name === "v{$milestone->title}" ) {
+					if ( $release->tag_name === $milestone->title || "v{$milestone->title}" === $release->tag_name ) {
 						WP_CLI::log( "Found matching release '{$release->tag_name}', closing milestone '{$milestone->title}'..." );
 						GitHub::close_milestone( $repo, $milestone->number );
 					}
@@ -95,7 +95,7 @@ final class Release_Command {
 			foreach ( $milestones as $milestone ) {
 				WP_CLI::log( "Checking milestone '{$milestone->title}'..." );
 				foreach ( $releases as $release ) {
-					if ( $release->tag_name === $milestone->title || $release->tag_name === "v{$milestone->title}" ) {
+					if ( $release->tag_name === $milestone->title || "v{$milestone->title}" === $release->tag_name ) {
 						WP_CLI::log( "Found matching release '{$release->tag_name}', skipping milestone '{$milestone->title}'..." );
 						continue 2;
 					}
@@ -116,7 +116,7 @@ final class Release_Command {
 				WP_CLI::log( "{$title} ({$tag})\n{$release_notes}" );
 				WP_CLI::log( '-----' );
 
-				fwrite( STDOUT, 'Is the above correct?' . ' [y/n] ' );
+				fwrite( STDOUT, 'Is the above correct? [y/n] ' );
 				$answer = strtolower( trim( fgets( STDIN ) ) );
 				if ( 'y' !== $answer ) {
 					continue 2;
@@ -212,6 +212,7 @@ final class Release_Command {
 					}
 
 					WP_CLI::warning( "Release notes not found for {$repo}@{$tag}, falling back to pull-request source" );
+					// Intentionally falling through.
 				case 'pull-request':
 					$pull_requests = GitHub::get_project_milestone_pull_requests(
 						$repo,
@@ -230,7 +231,7 @@ final class Release_Command {
 			}
 		}
 
-		$template = $format === 'html' ? '<ul>%s</ul>' : '%s';
+		$template = 'html' === $format ? '<ul>%s</ul>' : '%s';
 
 		return sprintf( $template, implode( '', $entries ) );
 	}
@@ -239,7 +240,7 @@ final class Release_Command {
 		$pull_request,
 		$format
 	) {
-		$template = $format === 'html' ?
+		$template = 'html' === $format ?
 			'<li>%1$s [<a href="%3$s">#%2$d</a>]</li>' :
 			'- %1$s [[#%2$d](%3$s)]' . PHP_EOL;
 
@@ -278,7 +279,7 @@ final class Release_Command {
 				GitHub::get_organization_repos(),
 				static function ( $repo ) use ( $exclude ) {
 					if ( null === $exclude ) {
-						return $repo->archived === false && $repo->disabled === false;
+						return false === $repo->archived && false === $repo->disabled;
 					}
 
 					return ! in_array( $repo->full_name, (array) $exclude, true );

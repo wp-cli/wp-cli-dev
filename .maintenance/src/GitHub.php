@@ -303,11 +303,7 @@ class GitHub {
 			list( $body, $headers ) = self::request( $request_url, $args );
 			foreach ( $body as $issue ) {
 				if ( ! empty( $issue->pull_request ) ) {
-					//if ( ! $only_merged || self::was_pull_request_merged( $project, $issue->number ) ) {
-						$pull_requests[] = $issue;
-					//} else {
-						//WP_CLI::warning( "Skipping PR {$issue->number} ({$issue->title}), as it was not merged." );
-					//}
+					$pull_requests[] = $issue;
 				}
 			}
 			$args        = array();
@@ -479,7 +475,8 @@ class GitHub {
 				'User-Agent' => 'WP-CLI',
 			)
 		);
-		if ( $token = getenv( 'GITHUB_TOKEN' ) ) {
+		$token   = getenv( 'GITHUB_TOKEN' )
+		if ( $token ) {
 			$headers['Authorization'] = 'token ' . $token;
 		}
 
@@ -495,7 +492,7 @@ class GitHub {
 
 		$response = Utils\http_request( $verb, $url, $args, $headers );
 
-		if ( 20 != substr( $response->status_code, 0, 2 ) ) {
+		if ( 20 !== (int) substr( $response->status_code, 0, 2 ) ) {
 			if ( isset( $args['throw_errors'] ) && false === $args['throw_errors'] ) {
 				return false;
 			}
