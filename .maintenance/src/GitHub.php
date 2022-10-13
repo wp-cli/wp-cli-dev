@@ -437,6 +437,24 @@ class GitHub {
 		return $body;
 	}
 
+
+    /**
+     * Get the default branch of a repository.
+     *
+     * @param string $project Project the get the default branch for.
+     *
+     * @return string Default branch of the repository.
+     */
+    public static function get_default_branch( $project ) {
+        $request_url = self::API_ROOT . "repos/{$project}";
+
+        list( $body, $headers ) = self::request( $request_url );
+
+
+
+        return $body->default_branch;
+    }
+
 	/**
 	 * Makes a request to the GitHub API.
 	 *

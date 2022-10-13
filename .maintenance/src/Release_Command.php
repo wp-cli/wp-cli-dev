@@ -122,8 +122,10 @@ final class Release_Command {
 					continue 2;
 				}
 
+                $default_branch = GitHub::get_default_branch( $repo );
+
 				WP_CLI::log( "Creating release {$title} {$tag}..." );
-				GitHub::create_release( $repo, $tag, 'master', $title, $release_notes );
+				GitHub::create_release( $repo, $tag, $default_branch, $title, $release_notes );
 
 				WP_CLI::log( "Closing milestone '{$milestone->title}'" );
 				GitHub::close_milestone( $repo, $milestone->number );
@@ -279,7 +281,8 @@ final class Release_Command {
 
 	private function get_bundle_repos() {
 		$repos             = [];
-		$composer_lock_url = 'https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/master/composer.lock';
+        $default_branch    = GitHub::get_default_branch( 'wp-cli/wp-cli-bundle' );
+		$composer_lock_url = "https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/{$default_branch}/composer.lock";
 		$response          = Utils\http_request( 'GET', $composer_lock_url );
 		if ( 200 !== $response->status_code ) {
 			WP_CLI::error( sprintf( 'Could not fetch composer.json (HTTP code %d)', $response->status_code ) );
