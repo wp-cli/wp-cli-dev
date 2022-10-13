@@ -475,7 +475,7 @@ class GitHub {
 				'User-Agent' => 'WP-CLI',
 			)
 		);
-		$token   = getenv( 'GITHUB_TOKEN' )
+		$token   = getenv( 'GITHUB_TOKEN' );
 		if ( $token ) {
 			$headers['Authorization'] = 'token ' . $token;
 		}
