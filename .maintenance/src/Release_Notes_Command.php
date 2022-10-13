@@ -79,7 +79,7 @@ final class Release_Notes_Command {
 			$milestone  = array_reduce(
 				$milestones,
 				static function ( $latest, $milestone ) {
-					if ( $latest === null ) {
+					if ( null === $latest ) {
 						return $milestone;
 					}
 					return version_compare( $milestone->title, $latest->title, '<' ) ? $milestone : $latest;
@@ -256,6 +256,7 @@ final class Release_Notes_Command {
 					}
 
 					WP_CLI::warning( "Release notes not found for {$repo}@{$tag}, falling back to pull-request source" );
+					// Intentionally falling through.
 				case 'pull-request':
 					$pull_requests = GitHub::get_project_milestone_pull_requests(
 						$repo,
@@ -274,7 +275,7 @@ final class Release_Notes_Command {
 			}
 		}
 
-		$template = $format === 'html' ? '<ul>%s</ul>' : '%s';
+		$template = 'html' === $format ? '<ul>%s</ul>' : '%s';
 
 		WP_CLI::log( sprintf( $template, implode( '', $entries ) ) );
 	}
@@ -283,7 +284,7 @@ final class Release_Notes_Command {
 		$pull_request,
 		$format
 	) {
-		$template = $format === 'html' ?
+		$template = 'html' === $format ?
 			'<li>%1$s [<a href="%3$s">#%2$d</a>]</li>' :
 			'- %1$s [[#%2$d](%3$s)]' . PHP_EOL;
 
