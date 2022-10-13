@@ -1,9 +1,10 @@
 <?php
+
+// phpcs:disable PEAR.NamingConventions.ValidClassName.StartWithCapital,PEAR.NamingConventions.ValidClassName.Invalid
 /**
  * phpstorm follows symlinks when indexing, which creates an infinite loop of indexing.
  * The inclusion of the vendor folders is mostly the problem
  */
-
 class phpstorm_exclude_recursive_folders {
 
 	public static function init() {
@@ -87,8 +88,8 @@ XML;
 		$modules_xml = new DOMDocument();
 		$modules_xml->load( '.idea/modules.xml' );
 		$iml_file_path = $modules_xml->getElementsByTagName( 'component' )->item( 0 )
-									 ->getElementsByTagName( 'modules' )->item( 0 )
-									 ->getElementsByTagName( 'module' )->item( 0 )->getAttribute( 'filepath' );
+									->getElementsByTagName( 'modules' )->item( 0 )
+									->getElementsByTagName( 'module' )->item( 0 )->getAttribute( 'filepath' );
 		$iml_file_path = str_replace( '$PROJECT_DIR$/', '', $iml_file_path );
 
 		return $iml_file_path;
@@ -120,10 +121,12 @@ XML;
 	 * Add the folders to exclude in the iml file.
 	 */
 	protected static function set_exclude_in_project_iml() {
-		$folders_to_exclude          = self::get_exclude_dir_list();
-		$iml_xml                     = new DOMDocument();
+		$folders_to_exclude = self::get_exclude_dir_list();
+		$iml_xml            = new DOMDocument();
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$iml_xml->preserveWhiteSpace = false;
-		$iml_xml->formatOutput       = true;
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$iml_xml->formatOutput = true;
 		$iml_xml->load( self::get_project_iml_path() );
 		$iml_xml_content_node = $iml_xml->getElementsByTagName( 'component' )->item( 0 )
 										->getElementsByTagName( 'content' )->item( 0 );
@@ -144,8 +147,10 @@ XML;
 			$iml_xml_content_node->appendChild( $exclude_node );
 		}
 
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$iml_xml->preserveWhiteSpace = false;
-		$iml_xml->formatOutput       = true;
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+		$iml_xml->formatOutput = true;
 		$iml_xml->save( self::get_project_iml_path() );
 	}
 }

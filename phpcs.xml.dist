@@ -45,5 +45,11 @@
 	SELECTIVE EXCLUSIONS
 	#############################################################################
 	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>*/.maintenance/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.GlobalVariablesOverride.Prohibited">
+		<exclude-pattern>*/.maintenance/*</exclude-pattern>
+	</rule>
 
 </ruleset>
