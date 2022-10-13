@@ -74,7 +74,7 @@ XML;
 	 */
 	protected static function get_project_name() {
 		$pwd          = getcwd();
-		$project_name = substr( $pwd, strrpos( $pwd, "/" ) + 1 );
+		$project_name = substr( $pwd, strrpos( $pwd, '/' ) + 1 );
 
 		return $project_name;
 	}
@@ -87,8 +87,8 @@ XML;
 		$modules_xml = new DOMDocument();
 		$modules_xml->load( '.idea/modules.xml' );
 		$iml_file_path = $modules_xml->getElementsByTagName( 'component' )->item( 0 )
-		                             ->getElementsByTagName( 'modules' )->item( 0 )
-		                             ->getElementsByTagName( 'module' )->item( 0 )->getAttribute( 'filepath' );
+									 ->getElementsByTagName( 'modules' )->item( 0 )
+									 ->getElementsByTagName( 'module' )->item( 0 )->getAttribute( 'filepath' );
 		$iml_file_path = str_replace( '$PROJECT_DIR$/', '', $iml_file_path );
 
 		return $iml_file_path;
@@ -126,7 +126,7 @@ XML;
 		$iml_xml->formatOutput       = true;
 		$iml_xml->load( self::get_project_iml_path() );
 		$iml_xml_content_node = $iml_xml->getElementsByTagName( 'component' )->item( 0 )
-		                                ->getElementsByTagName( 'content' )->item( 0 );
+										->getElementsByTagName( 'content' )->item( 0 );
 		$xpath                = new DomXpath( $iml_xml );
 
 		foreach ( $folders_to_exclude as $folder ) {

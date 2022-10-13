@@ -122,7 +122,7 @@ final class Release_Command {
 					continue 2;
 				}
 
-                $default_branch = GitHub::get_default_branch( $repo );
+				$default_branch = GitHub::get_default_branch( $repo );
 
 				WP_CLI::log( "Creating release {$title} {$tag}..." );
 				GitHub::create_release( $repo, $tag, $default_branch, $title, $release_notes );
@@ -134,7 +134,13 @@ final class Release_Command {
 	}
 
 	private function has_open_items_on_milestone( $repo, $milestone ) {
-		return GitHub::get_issues( $repo, [ 'milestone' => $milestone, 'state' => 'open' ] );
+		return GitHub::get_issues(
+			$repo,
+			[
+				'milestone' => $milestone,
+				'state'     => 'open',
+			]
+		);
 	}
 
 	private function get_release_notes(
@@ -184,8 +190,10 @@ final class Release_Command {
 		$entries = array();
 		foreach ( $milestones as $milestone ) {
 
-			WP_CLI::debug( "Using milestone '{$milestone->title}' for repo '{$repo}'",
-				'release generate' );
+			WP_CLI::debug(
+				"Using milestone '{$milestone->title}' for repo '{$repo}'",
+				'release generate'
+			);
 
 			switch ( $source ) {
 				case 'release':
@@ -281,7 +289,7 @@ final class Release_Command {
 
 	private function get_bundle_repos() {
 		$repos             = [];
-        $default_branch    = GitHub::get_default_branch( 'wp-cli/wp-cli-bundle' );
+		$default_branch    = GitHub::get_default_branch( 'wp-cli/wp-cli-bundle' );
 		$composer_lock_url = "https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/{$default_branch}/composer.lock";
 		$response          = Utils\http_request( 'GET', $composer_lock_url );
 		if ( 200 !== $response->status_code ) {
@@ -289,21 +297,28 @@ final class Release_Command {
 		}
 		$composer_json = json_decode( $response->body, true );
 
-		usort( $composer_json['packages'], static function ( $a, $b ) {
-			return $a['name'] < $b['name'] ? - 1 : 1;
-		} );
+		usort(
+			$composer_json['packages'],
+			static function ( $a, $b ) {
+				return $a['name'] < $b['name'] ? - 1 : 1;
+			}
+		);
 
 		foreach ( $composer_json['packages'] as $package ) {
 			$package_name = $package['name'];
 			if ( ! preg_match( '#^wp-cli/.+-command$#', $package_name )
-			     && ! in_array( $package_name, array(
-					'wp-cli/wp-cli-tests',
-					'wp-cli/regenerate-readme',
-					'wp-cli/autoload-splitter',
-					'wp-cli/wp-config-transformer',
-					'wp-cli/php-cli-tools',
-					'wp-cli/spyc',
-				), true ) ) {
+				&& ! in_array(
+					$package_name,
+					array(
+						'wp-cli/wp-cli-tests',
+						'wp-cli/regenerate-readme',
+						'wp-cli/autoload-splitter',
+						'wp-cli/wp-config-transformer',
+						'wp-cli/php-cli-tools',
+						'wp-cli/spyc',
+					),
+					true
+				) ) {
 				continue;
 			}
 			$repos[] = $package_name;

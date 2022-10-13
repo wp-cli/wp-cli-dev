@@ -76,7 +76,7 @@ final class Release_Notes_Command {
 			) as $repo
 		) {
 			$milestones = GitHub::get_project_milestones( $repo );
-			$milestone = array_reduce(
+			$milestone  = array_reduce(
 				$milestones,
 				static function ( $latest, $milestone ) {
 					if ( $latest === null ) {
@@ -121,31 +121,45 @@ final class Release_Notes_Command {
 
 		$tag = ! empty( $milestone ) ? "v{$milestone}" : GitHub::get_default_branch( $bundle );
 
-		$composer_lock_url = sprintf( 'https://raw.githubusercontent.com/%s/%s/composer.lock',
-			$bundle, $tag );
+		$composer_lock_url = sprintf(
+			'https://raw.githubusercontent.com/%s/%s/composer.lock',
+			$bundle,
+			$tag
+		);
 		$response          = Utils\http_request( 'GET', $composer_lock_url );
 		if ( 200 !== $response->status_code ) {
-			WP_CLI::error( sprintf( 'Could not fetch composer.json (HTTP code %d)',
-				$response->status_code ) );
+			WP_CLI::error(
+				sprintf(
+					'Could not fetch composer.json (HTTP code %d)',
+					$response->status_code
+				)
+			);
 		}
 		$composer_json = json_decode( $response->body, true );
 
-		usort( $composer_json['packages'], function ( $a, $b ) {
-			return $a['name'] < $b['name'] ? - 1 : 1;
-		} );
+		usort(
+			$composer_json['packages'],
+			function ( $a, $b ) {
+				return $a['name'] < $b['name'] ? - 1 : 1;
+			}
+		);
 
 		foreach ( $composer_json['packages'] as $package ) {
 			$package_name       = $package['name'];
 			$version_constraint = str_replace( 'v', '', $package['version'] );
 			if ( ! preg_match( '#^wp-cli/.+-command$#', $package_name )
-			     && ! in_array( $package_name, array(
-					'wp-cli/wp-cli-tests',
-					'wp-cli/regenerate-readme',
-					'wp-cli/autoload-splitter',
-					'wp-cli/wp-config-transformer',
-					'wp-cli/php-cli-tools',
-					'wp-cli/spyc',
-				), true ) ) {
+				&& ! in_array(
+					$package_name,
+					array(
+						'wp-cli/wp-cli-tests',
+						'wp-cli/regenerate-readme',
+						'wp-cli/autoload-splitter',
+						'wp-cli/wp-config-transformer',
+						'wp-cli/php-cli-tools',
+						'wp-cli/spyc',
+					),
+					true
+				) ) {
 				continue;
 			}
 
@@ -157,8 +171,11 @@ final class Release_Notes_Command {
 				array( 'state' => 'closed' )
 			);
 			foreach ( $milestones as $milestone ) {
-				if ( ! version_compare( $milestone->title, $version_constraint,
-					'>' ) ) {
+				if ( ! version_compare(
+					$milestone->title,
+					$version_constraint,
+					'>'
+				) ) {
 					continue;
 				}
 
