@@ -1,11 +1,11 @@
 <?php
 
-if ( ! isset ( $argv[1] ) || ! is_dir( $argv[1] ) ) {
+if ( ! isset( $argv[1] ) || ! is_dir( $argv[1] ) ) {
 	exit( "Usage: php refresh-repository.php <repository-folder>\n" );
 }
 
 $repository = $argv[1];
-$path = realpath( getcwd() . "/{$repository}" );
+$path       = realpath( getcwd() . "/{$repository}" );
 
 printf( "--- Refreshing repository \033[32m{$repository}\033[0m ---\n" );
 

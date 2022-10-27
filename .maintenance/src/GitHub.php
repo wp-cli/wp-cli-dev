@@ -174,8 +174,11 @@ class GitHub {
 
 		$headers['http_verb'] = 'DELETE';
 
-		list( $body, $headers ) = self::request( $request_url, $args,
-			$headers );
+		list( $body, $headers ) = self::request(
+			$request_url,
+			$args,
+			$headers
+		);
 
 		return $body;
 	}
@@ -236,8 +239,11 @@ class GitHub {
 
 		$args = array( $label );
 
-		list( $body, $headers ) = self::request( $request_url, $args,
-			$headers );
+		list( $body, $headers ) = self::request(
+			$request_url,
+			$args,
+			$headers
+		);
 
 		return $body;
 	}
@@ -272,14 +278,14 @@ class GitHub {
 	 *
 	 * @param string  $project
 	 * @param integer $milestone_id
-     * @param bool    $only_merged
+	 * @param bool    $only_merged
 	 *
 	 * @return array
 	 */
 	public static function get_project_milestone_pull_requests(
 		$project,
 		$milestone_id,
-        $only_merged = true
+		$only_merged = true
 	) {
 		$request_url = sprintf(
 			self::API_ROOT . 'repos/%s/issues',
@@ -297,11 +303,7 @@ class GitHub {
 			list( $body, $headers ) = self::request( $request_url, $args );
 			foreach ( $body as $issue ) {
 				if ( ! empty( $issue->pull_request ) ) {
-					//if ( ! $only_merged || self::was_pull_request_merged( $project, $issue->number ) ) {
-						$pull_requests[] = $issue;
-					//} else {
-					    //WP_CLI::warning( "Skipping PR {$issue->number} ({$issue->title}), as it was not merged." );
-                    //}
+					$pull_requests[] = $issue;
 				}
 			}
 			$args        = array();
@@ -322,24 +324,23 @@ class GitHub {
 		return $pull_requests;
 	}
 
-    /**
-     * Check whether a specific pull request was actually merged.
-     *
-     * @param $project
-     * @param $pull_request_number
-     * @return bool
-     */
-    public static function was_pull_request_merged( $project, $pull_request_number )
-    {
-        $request_url = sprintf(
-            self::API_ROOT . 'repos/%s/pulls/%s',
-            $project,
-            $pull_request_number
-        );
+	/**
+	 * Check whether a specific pull request was actually merged.
+	 *
+	 * @param $project
+	 * @param $pull_request_number
+	 * @return bool
+	 */
+	public static function was_pull_request_merged( $project, $pull_request_number ) {
+		$request_url = sprintf(
+			self::API_ROOT . 'repos/%s/pulls/%s',
+			$project,
+			$pull_request_number
+		);
 
-        list( $body, $headers ) = self::request( $request_url );
+		list( $body, $headers ) = self::request( $request_url );
 
-        return ! empty( $body->merged_at );
+		return ! empty( $body->merged_at );
 	}
 
 	/**
@@ -376,8 +377,8 @@ class GitHub {
 		);
 
 		$args = array(
-			'per_page'  => 100,
-			'state'     => 'all',
+			'per_page' => 100,
+			'state'    => 'all',
 		);
 
 		list( $body, $headers ) = self::request( $request_url, $args );
@@ -401,8 +402,8 @@ class GitHub {
 
 		$args = array_merge(
 			[
-				'per_page'  => 100,
-				'state'     => 'all',
+				'per_page' => 100,
+				'state'    => 'all',
 			],
 			$args
 		);
@@ -438,22 +439,20 @@ class GitHub {
 	}
 
 
-    /**
-     * Get the default branch of a repository.
-     *
-     * @param string $project Project the get the default branch for.
-     *
-     * @return string Default branch of the repository.
-     */
-    public static function get_default_branch( $project ) {
-        $request_url = self::API_ROOT . "repos/{$project}";
+	/**
+	 * Get the default branch of a repository.
+	 *
+	 * @param string $project Project the get the default branch for.
+	 *
+	 * @return string Default branch of the repository.
+	 */
+	public static function get_default_branch( $project ) {
+		$request_url = self::API_ROOT . "repos/{$project}";
 
-        list( $body, $headers ) = self::request( $request_url );
+		list( $body, $headers ) = self::request( $request_url );
 
-
-
-        return $body->default_branch;
-    }
+		return $body->default_branch;
+	}
 
 	/**
 	 * Makes a request to the GitHub API.
@@ -476,7 +475,8 @@ class GitHub {
 				'User-Agent' => 'WP-CLI',
 			)
 		);
-		if ( $token = getenv( 'GITHUB_TOKEN' ) ) {
+		$token   = getenv( 'GITHUB_TOKEN' );
+		if ( $token ) {
 			$headers['Authorization'] = 'token ' . $token;
 		}
 
@@ -492,7 +492,7 @@ class GitHub {
 
 		$response = Utils\http_request( $verb, $url, $args, $headers );
 
-		if ( 20 != substr( $response->status_code, 0, 2 ) ) {
+		if ( 20 !== (int) substr( $response->status_code, 0, 2 ) ) {
 			if ( isset( $args['throw_errors'] ) && false === $args['throw_errors'] ) {
 				return false;
 			}

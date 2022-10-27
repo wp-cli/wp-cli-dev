@@ -26,9 +26,10 @@ final class Release_Date_Command {
 			$repo = "wp-cli/{$repo}";
 		}
 
+		$has_v   = 0 === strpos( $milestone_name, 'v' );
 		$release = GitHub::get_release_by_tag(
 			$repo,
-			0 === strpos( $milestone_name, 'v' )
+			$has_v
 				? $milestone_name
 				: "v{$milestone_name}",
 			array( 'state' => 'all' )

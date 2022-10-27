@@ -12,20 +12,18 @@ $skip_list = array(
 	'wp-cli-roadmap',
 );
 
-$request        = 'https://api.github.com/orgs/wp-cli/repos?per_page=100';
-$headers        = '';
-$token          = getenv( 'GITHUB_TOKEN' );
-if (!empty($token)) {
-$headers = '--header "Authorization: token $token"';
-$response       = shell_exec( "curl -s {$headers} {$request}" );
+$request = 'https://api.github.com/orgs/wp-cli/repos?per_page=100';
+$headers = '';
+$token   = getenv( 'GITHUB_TOKEN' );
+if ( ! empty( $token ) ) {
+	$headers  = '--header "Authorization: token $token"';
+	$response = shell_exec( "curl -s {$headers} {$request}" );
+} else {
+	$response = shell_exec( "curl -s {$request}" );
 }
-else
-{
-$response       = shell_exec( "curl -s {$request}" );
-}
-$repositories   = json_decode( $response );
+$repositories = json_decode( $response );
 if ( ! is_array( $repositories ) && property_exists( $repositories, 'message' ) ) {
-	echo "GitHub responded with: " . $repositories->message . "\n";
+	echo 'GitHub responded with: ' . $repositories->message . "\n";
 	echo "If you are running into a rate limiting issue during large events please set GITHUB_TOKEN environment variable.\n";
 	exit( 1 );
 }
@@ -40,9 +38,10 @@ foreach ( $repositories as $repository ) {
 
 	if ( ! is_dir( $repository->name ) ) {
 		printf( "Fetching \033[32mwp-cli/{$repository->name}\033[0m...\n" );
-		system( "git clone {$repository->ssh_url}" );
+		$clone_url = getenv( 'GITHUB_ACTION' ) ? $repository->clone_url : $repository->ssh_url;
+		system( "git clone {$clone_url}" );
 	}
-	
+
 	$update_folders[] = $repository->name;
 }
 
