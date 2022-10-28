@@ -18,6 +18,6 @@ foreach ( $repositories as $repository ) {
 		}
 
 		// Symlink the autoloader as well so commands can be properly loaded.
-		symlink( "../../vendor/autoload.php", "{$repository}/vendor/autoload.php" );
+		symlink( '../../vendor/autoload.php', "{$repository}/vendor/autoload.php" );
 	}
 }

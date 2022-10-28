@@ -76,10 +76,10 @@ final class Release_Notes_Command {
 			) as $repo
 		) {
 			$milestones = GitHub::get_project_milestones( $repo );
-			$milestone = array_reduce(
+			$milestone  = array_reduce(
 				$milestones,
 				static function ( $latest, $milestone ) {
-					if ( $latest === null ) {
+					if ( null === $latest ) {
 						return $milestone;
 					}
 					return version_compare( $milestone->title, $latest->title, '<' ) ? $milestone : $latest;
@@ -121,31 +121,45 @@ final class Release_Notes_Command {
 
 		$tag = ! empty( $milestone ) ? "v{$milestone}" : GitHub::get_default_branch( $bundle );
 
-		$composer_lock_url = sprintf( 'https://raw.githubusercontent.com/%s/%s/composer.lock',
-			$bundle, $tag );
+		$composer_lock_url = sprintf(
+			'https://raw.githubusercontent.com/%s/%s/composer.lock',
+			$bundle,
+			$tag
+		);
 		$response          = Utils\http_request( 'GET', $composer_lock_url );
 		if ( 200 !== $response->status_code ) {
-			WP_CLI::error( sprintf( 'Could not fetch composer.json (HTTP code %d)',
-				$response->status_code ) );
+			WP_CLI::error(
+				sprintf(
+					'Could not fetch composer.json (HTTP code %d)',
+					$response->status_code
+				)
+			);
 		}
 		$composer_json = json_decode( $response->body, true );
 
-		usort( $composer_json['packages'], function ( $a, $b ) {
-			return $a['name'] < $b['name'] ? - 1 : 1;
-		} );
+		usort(
+			$composer_json['packages'],
+			function ( $a, $b ) {
+				return $a['name'] < $b['name'] ? - 1 : 1;
+			}
+		);
 
 		foreach ( $composer_json['packages'] as $package ) {
 			$package_name       = $package['name'];
 			$version_constraint = str_replace( 'v', '', $package['version'] );
 			if ( ! preg_match( '#^wp-cli/.+-command$#', $package_name )
-			     && ! in_array( $package_name, array(
-					'wp-cli/wp-cli-tests',
-					'wp-cli/regenerate-readme',
-					'wp-cli/autoload-splitter',
-					'wp-cli/wp-config-transformer',
-					'wp-cli/php-cli-tools',
-					'wp-cli/spyc',
-				), true ) ) {
+				&& ! in_array(
+					$package_name,
+					array(
+						'wp-cli/wp-cli-tests',
+						'wp-cli/regenerate-readme',
+						'wp-cli/autoload-splitter',
+						'wp-cli/wp-config-transformer',
+						'wp-cli/php-cli-tools',
+						'wp-cli/spyc',
+					),
+					true
+				) ) {
 				continue;
 			}
 
@@ -157,8 +171,11 @@ final class Release_Notes_Command {
 				array( 'state' => 'closed' )
 			);
 			foreach ( $milestones as $milestone ) {
-				if ( ! version_compare( $milestone->title, $version_constraint,
-					'>' ) ) {
+				if ( ! version_compare(
+					$milestone->title,
+					$version_constraint,
+					'>'
+				) ) {
 					continue;
 				}
 
@@ -239,6 +256,7 @@ final class Release_Notes_Command {
 					}
 
 					WP_CLI::warning( "Release notes not found for {$repo}@{$tag}, falling back to pull-request source" );
+					// Intentionally falling through.
 				case 'pull-request':
 					$pull_requests = GitHub::get_project_milestone_pull_requests(
 						$repo,
@@ -257,7 +275,7 @@ final class Release_Notes_Command {
 			}
 		}
 
-		$template = $format === 'html' ? '<ul>%s</ul>' : '%s';
+		$template = 'html' === $format ? '<ul>%s</ul>' : '%s';
 
 		WP_CLI::log( sprintf( $template, implode( '', $entries ) ) );
 	}
@@ -266,7 +284,7 @@ final class Release_Notes_Command {
 		$pull_request,
 		$format
 	) {
-		$template = $format === 'html' ?
+		$template = 'html' === $format ?
 			'<li>%1$s [<a href="%3$s">#%2$d</a>]</li>' :
 			'- %1$s [[#%2$d](%3$s)]' . PHP_EOL;
 
