@@ -71,6 +71,11 @@ class GitHub {
 		$prerelease = false,
 		$args = []
 	) {
+
+		if ( ! getenv( 'GITHUB_TOKEN' ) ) {
+			WP_CLI::error( 'GITHUB_TOKEN environment variable must be set.' );
+		}
+
 		$request_url = sprintf(
 			self::API_ROOT . 'repos/%s/releases',
 			$project
