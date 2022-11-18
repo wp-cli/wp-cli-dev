@@ -213,7 +213,7 @@
         "wp-cli/export-command": "dev-main",
         "wp-cli/extension-command": "dev-main",
         "wp-cli/find-command": "dev-main",
-        "wp-cli/google-sitemap-generator-cli": "dev-master",
+        "wp-cli/google-sitemap-generator-cli": "dev-main",
         "wp-cli/i18n-command": "dev-main",
         "wp-cli/import-command": "dev-main",
         "wp-cli/language-command": "dev-main",
@@ -237,7 +237,7 @@
         "wp-cli/wp-cli-bundle": "dev-main",
         "wp-cli/wp-cli-tests": "dev-main",
         "wp-cli/wp-config-transformer": "dev-main as 1.2.x-dev",
-        "wp-cli/wp-super-cache-cli": "dev-master",
+        "wp-cli/wp-super-cache-cli": "dev-main",
         "johnpbloch/wordpress-core-installer": "^1.0 || ^2.0",
         "johnpbloch/wordpress-core": "dev-master"
     },
