@@ -16,7 +16,7 @@ $request = 'https://api.github.com/orgs/wp-cli/repos?per_page=100';
 $headers = '';
 $token   = getenv( 'GITHUB_TOKEN' );
 if ( ! empty( $token ) ) {
-	$headers  = '--header "Authorization: token $token"';
+	$headers  = "--header \"Authorization: Bearer $token\"";
 	$response = shell_exec( "curl -s {$headers} {$request}" );
 } else {
 	$response = shell_exec( "curl -s {$request}" );
