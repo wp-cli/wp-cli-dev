@@ -19,7 +19,7 @@ final class Milestones_Since_Command {
 	 *
 	 * @when before_wp_load
 	 */
-	public function __invoke( $args, $assoc_args ) {
+	public function __invoke( $args, $assoc_args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 
 		list( $repo, $date ) = $args;
 
