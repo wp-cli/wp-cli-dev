@@ -283,14 +283,12 @@ class GitHub {
 	 *
 	 * @param string  $project
 	 * @param integer $milestone_id
-	 * @param bool    $only_merged
 	 *
 	 * @return array
 	 */
 	public static function get_project_milestone_pull_requests(
 		$project,
-		$milestone_id,
-		$only_merged = true
+		$milestone_id
 	) {
 		$request_url = sprintf(
 			self::API_ROOT . 'repos/%s/issues',
