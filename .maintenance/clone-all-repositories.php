@@ -7,7 +7,6 @@ $skip_list = array(
 	'ideas',
 	'package-index',
 	'sample-plugin',
-	'snapshot-command',
 	'wp-cli-dev',
 	'wp-cli-roadmap',
 );
