@@ -11,6 +11,10 @@ $skip_list = array(
 	'wp-cli-roadmap',
 );
 
+$clone_destination_map = array(
+	'.github' => 'dot-github',
+);
+
 $request = 'https://api.github.com/orgs/wp-cli/repos?per_page=100';
 $headers = '';
 $token   = getenv( 'GITHUB_TOKEN' );
@@ -37,9 +41,10 @@ foreach ( $repositories as $repository ) {
 	}
 
 	if ( ! is_dir( $repository->name ) ) {
+		$destination = isset( $clone_destination_map[ $repository->name ] ) ? $clone_destination_map[ $repository->name ] : '';
 		printf( "Fetching \033[32mwp-cli/{$repository->name}\033[0m...\n" );
 		$clone_url = getenv( 'GITHUB_ACTION' ) ? $repository->clone_url : $repository->ssh_url;
-		system( "git clone {$clone_url}" );
+		system( "git clone {$clone_url} {$destination}" );
 	}
 
 	$update_folders[] = $repository->name;
