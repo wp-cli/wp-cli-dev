@@ -40,14 +40,15 @@ foreach ( $repositories as $repository ) {
 		continue;
 	}
 
+	$destination = isset( $clone_destination_map[ $repository->name ] ) ? $clone_destination_map[ $repository->name ] : $repository->name;
+
 	if ( ! is_dir( $repository->name ) ) {
-		$destination = isset( $clone_destination_map[ $repository->name ] ) ? $clone_destination_map[ $repository->name ] : '';
 		printf( "Fetching \033[32mwp-cli/{$repository->name}\033[0m...\n" );
 		$clone_url = getenv( 'GITHUB_ACTION' ) ? $repository->clone_url : $repository->ssh_url;
 		system( "git clone {$clone_url} {$destination}" );
 	}
 
-	$update_folders[] = $repository->name;
+	$update_folders[] = $destination;
 }
 
 $updates = implode( '\n', $update_folders );
