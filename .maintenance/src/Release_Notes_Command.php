@@ -115,6 +115,9 @@ final class Release_Notes_Command {
 		$milestone = array_reduce(
 			$milestones,
 			function ( $tag, $milestone ) {
+				if ( ! $tag ) {
+					return $milestone->title;
+				}
 				return version_compare( $milestone->title, $tag, '>' ) ? $milestone->title : $tag;
 			}
 		);
