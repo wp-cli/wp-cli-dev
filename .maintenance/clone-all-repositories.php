@@ -42,7 +42,7 @@ foreach ( $repositories as $repository ) {
 
 	$destination = isset( $clone_destination_map[ $repository->name ] ) ? $clone_destination_map[ $repository->name ] : $repository->name;
 
-	if ( ! is_dir( $repository->name ) ) {
+	if ( ! is_dir( $destination ) ) {
 		printf( "Fetching \033[32mwp-cli/{$repository->name}\033[0m...\n" );
 		$clone_url = getenv( 'GITHUB_ACTION' ) ? $repository->clone_url : $repository->ssh_url;
 		system( "git clone {$clone_url} {$destination}" );
