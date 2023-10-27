@@ -33,10 +33,12 @@ final class Contrib_List_Command {
 	 * @when before_wp_load
 	 */
 	public function __invoke( $args, $assoc_args ) {
-
 		$repos           = null;
-		$milestone_names = null;
 		$use_bundle      = false;
+
+		$ignored_contributors = [
+			'github-actions[bot]',
+		];
 
 		if ( count( $args ) > 0 ) {
 			$repos = [ array_shift( $args ) ];
@@ -195,6 +197,8 @@ final class Contrib_List_Command {
 				}
 			}
 		}
+
+		$contributors = array_diff( $contributors, $ignored_contributors );
 
 		WP_CLI::log( 'Total contributors: ' . count( $contributors ) );
 		WP_CLI::log( 'Total pull requests: ' . $pull_request_count );
