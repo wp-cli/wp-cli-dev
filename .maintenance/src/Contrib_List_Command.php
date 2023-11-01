@@ -33,8 +33,8 @@ final class Contrib_List_Command {
 	 * @when before_wp_load
 	 */
 	public function __invoke( $args, $assoc_args ) {
-		$repos           = null;
-		$use_bundle      = false;
+		$repos      = null;
+		$use_bundle = false;
 
 		$ignored_contributors = [
 			'github-actions[bot]',
