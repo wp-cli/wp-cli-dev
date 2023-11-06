@@ -19,17 +19,12 @@ In order to make code changes to WP-CLI, you'll need to set up this `wp-cli-dev`
 2. Install all Composer dependencies for a complete `wp-cli-bundle` setup, while symlinking all of the previously cloned packages into the Composer `vendor` folder.
 3. Symlink all folder in `vendor` into corresponding `vendor` folders in each repository, thus making the centralized functionality based on Composer available in each repository subfolder.
 
-First, clone the GitHub repository:
+Before you can proceed further, you'll need to make sure you have [Composer](https://getcomposer.org/), PHP, and a functioning MySQL or MariaDB server on your local machine.
+
+Once the prequisites are met, clone the GitHub repository and run the installation process:
 
 ```bash
 git clone https://github.com/wp-cli/wp-cli-dev wp-cli-dev
-```
-
-Before you can proceed further, you'll need to make sure you have [Composer](https://getcomposer.org/), PHP, and a functioning MySQL or MariaDB server on your local machine too.
-
-Once those prequisites are met, finish the installation process:
-
-```bash
 cd wp-cli-dev
 composer install
 composer prepare-tests
