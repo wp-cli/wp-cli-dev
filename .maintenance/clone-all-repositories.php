@@ -6,6 +6,7 @@ $skip_list = array(
 	'dash-docset-generator',
 	'ideas',
 	'package-index',
+	'regenerate-readme',
 	'sample-plugin',
 	'wp-cli-dev',
 	'wp-cli-roadmap',
