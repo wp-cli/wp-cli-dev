@@ -21,7 +21,7 @@ In order to make code changes to WP-CLI, you'll need to set up this `wp-cli-dev`
 
 Before you can proceed further, you'll need to make sure you have [Composer](https://getcomposer.org/), PHP, and a functioning MySQL or MariaDB server on your local machine.
 
-Once the prequisites are met, clone the GitHub repository and run the installation process:
+Once the prerequisites are met, clone the GitHub repository and run the installation process:
 
 ```bash
 git clone https://github.com/wp-cli/wp-cli-dev wp-cli-dev
@@ -64,12 +64,21 @@ wp maintenance
 Lists all contributors to this release.
 
 ~~~
-wp maintenance contrib-list [--format=<format>]
+wp maintenance contrib-list [<repo>] [<milestone>...] [--format=<format>]
 ~~~
 
 Run within the main WP-CLI project repository.
 
 **OPTIONS**
+
+	[<repo>]
+		Name of the repository to fetch the release notes for. If no user/org
+		was provided, 'wp-cli' org is assumed. If no repo is passed, release
+		notes for the entire org state since the last bundle release are fetched.
+
+	[<milestone>...]
+		Name of one or more milestones to fetch the release notes for. If none
+		are passed, the current open one is assumed.
 
 	[--format=<format>]
 		Render output in a specific format.
@@ -156,7 +165,7 @@ wp maintenance release-notes [<repo>] [<milestone>...] [--source=<source>] [--fo
 
 	[<milestone>...]
 		Name of one or more milestones to fetch the release notes for. If none
-		are passed, the currently open one is assumed.
+		are passed, the current open one is assumed.
 
 	[--source=<source>]
 		Choose source from where to copy content.
@@ -207,7 +216,7 @@ We appreciate you taking the initiative to contribute to this project.
 
 Contributing isn’t limited to just code. We encourage you to contribute in the way that best fits your abilities, by writing tutorials, giving a demo at your local meetup, helping other users with their support questions, or revising our documentation.
 
-For a more thorough introduction, [check out WP-CLI's guide to contributing](https://make.wordpress.org/cli/handbook/contributing/). This package follows those policies and guidelines.
+For a more thorough introduction, [check out WP-CLI's guide to contributing](https://make.wordpress.org/cli/handbook/contributing/). This package follows those policy and guidelines.
 
 ### Reporting a bug
 
@@ -225,6 +234,6 @@ Once you've decided to commit the time to seeing your pull request through, [ple
 
 ## Support
 
-Github issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
+GitHub issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
 
 

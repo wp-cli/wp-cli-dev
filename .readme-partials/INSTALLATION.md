@@ -8,7 +8,7 @@ In order to make code changes to WP-CLI, you'll need to set up this `wp-cli-dev`
 
 Before you can proceed further, you'll need to make sure you have [Composer](https://getcomposer.org/), PHP, and a functioning MySQL or MariaDB server on your local machine.
 
-Once the prequisites are met, clone the GitHub repository and run the installation process:
+Once the prerequisites are met, clone the GitHub repository and run the installation process:
 
 ```bash
 git clone https://github.com/wp-cli/wp-cli-dev wp-cli-dev
