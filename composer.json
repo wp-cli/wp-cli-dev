@@ -221,7 +221,7 @@
         "wp-cli/media-command": "dev-main",
         "wp-cli/mustangostang-spyc": "dev-master as 0.6.x-dev",
         "wp-cli/package-command": "dev-main",
-        "wp-cli/php-cli-tools": "dev-master as 0.11.x-dev",
+        "wp-cli/php-cli-tools": "dev-master as 0.12.x-dev",
         "wp-cli/profile-command": "dev-main",
         "wp-cli/restful": "dev-main",
         "wp-cli/rewrite-command": "dev-main",
