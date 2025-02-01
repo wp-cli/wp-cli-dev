@@ -6,7 +6,7 @@
 get_bundle_dependencies()
 {
 	echo "wp-cli/wp-cli-bundle"
-	curl --silent "https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/master/composer.json" \
+	curl --silent "https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/main/composer.json" \
 		| jq --raw-output '."require" | keys[] | select(startswith("wp-cli/"))'
 }
 
