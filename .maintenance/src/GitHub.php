@@ -26,9 +26,28 @@ class GitHub {
 
 		$args['per_page'] = 100;
 
-		list( $body, $headers ) = self::request( $request_url, $args );
+		$milestones = [];
+		do {
+			list( $body, $headers ) = self::request( $request_url, $args );
+			foreach ( $body as $milestone ) {
+				$milestones[] = $milestone;
+			}
+			$args        = array();
+			$request_url = false;
+			// Set $request_url to 'rel="next" if present'
+			if ( ! empty( $headers['Link'] ) ) {
+				$bits = explode( ',', $headers['Link'] );
+				foreach ( $bits as $bit ) {
+					if ( false !== stripos( $bit, 'rel="next"' ) ) {
+						$hrefandrel  = explode( '; ', $bit );
+						$request_url = trim( trim( $hrefandrel[0] ), '<>' );
+						break;
+					}
+				}
+			}
+		} while ( $request_url );
 
-		return $body;
+		return $milestones;
 	}
 
 	/**
