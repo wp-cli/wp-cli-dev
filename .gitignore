@@ -1,6 +1,7 @@
 # Exclude all subfolders...
 /*/
-# except for the _maintenance folder.
+# except for the following.
+!/.github/
 !/.maintenance/
 !/.readme-partials/
 
