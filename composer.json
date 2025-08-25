@@ -249,6 +249,9 @@
     },
     "config": {
         "process-timeout": 7200,
+        "preferred-install": {
+            "wp-cli/*": "source"
+        },
         "sort-packages": true,
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,
