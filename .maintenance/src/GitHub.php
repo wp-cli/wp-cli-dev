@@ -141,7 +141,13 @@ class GitHub {
 
 		$args['per_page'] = 100;
 
-		list( $body, $headers ) = self::request( $request_url, $args );
+		$result = self::request( $request_url, $args );
+
+		if ( ! $result ) {
+			return false;
+		}
+
+		list( $body, $headers ) = $result;
 
 		return $body;
 	}
