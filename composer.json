@@ -195,10 +195,14 @@
     ],
     "require": {
         "php": ">=7.2.24",
-        "ext-json": "*",
         "ext-dom": "*",
+        "ext-json": "*",
+        "johnpbloch/wordpress-core": "dev-master",
+        "johnpbloch/wordpress-core-installer": "^1.0 || ^2.0",
+        "wp-cli/ability-command": "^1.0@dev",
         "wp-cli/admin-command": "dev-main",
         "wp-cli/automated-tests": "dev-main",
+        "wp-cli/block-command": "^1.0@dev",
         "wp-cli/cache-command": "dev-main",
         "wp-cli/checksum-command": "dev-main",
         "wp-cli/config-command": "dev-main",
@@ -237,9 +241,7 @@
         "wp-cli/wp-cli-bundle": "dev-main",
         "wp-cli/wp-cli-tests": "dev-main",
         "wp-cli/wp-config-transformer": "dev-main as 1.2.x-dev",
-        "wp-cli/wp-super-cache-cli": "dev-main",
-        "johnpbloch/wordpress-core-installer": "^1.0 || ^2.0",
-        "johnpbloch/wordpress-core": "dev-master"
+        "wp-cli/wp-super-cache-cli": "dev-main"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest"
