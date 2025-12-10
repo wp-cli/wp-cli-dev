@@ -10,3 +10,7 @@ on:
 jobs:
   code-quality:
     uses: wp-cli/.github/.github/workflows/reusable-code-quality.yml@main
+    with:
+      parallel-lint-excludes: |
+        process
+        wordpress-core
