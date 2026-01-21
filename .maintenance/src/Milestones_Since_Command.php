@@ -7,7 +7,7 @@ final class Milestones_Since_Command {
 
 	/**
 	 * Retrieves the milestones that were closed for a given repository after a
-	 * specific date treshold.
+	 * specific date threshold.
 	 *
 	 * ## OPTIONS
 	 *

@@ -105,7 +105,7 @@ wp maintenance milestones-after <repo> <milestone>
 		Name of the repository to fetch the milestones for.
 
 	<milestone>
-		Milestone to serve as treshold.
+		Milestone to serve as threshold.
 
 
 
@@ -117,7 +117,7 @@ Retrieves the milestones that were closed for a given repository after a
 wp maintenance milestones-since <repo> <date>
 ~~~
 
-specific date treshold.
+specific date threshold.
 
 **OPTIONS**
 

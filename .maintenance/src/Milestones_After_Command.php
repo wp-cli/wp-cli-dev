@@ -13,7 +13,7 @@ final class Milestones_After_Command {
 	 * : Name of the repository to fetch the milestones for.
 	 *
 	 * <milestone>
-	 * : Milestone to serve as treshold.
+	 * : Milestone to serve as threshold.
 	 *
 	 * @when before_wp_load
 	 */

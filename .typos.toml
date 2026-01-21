@@ -1,0 +1,22 @@
+[default]
+extend-ignore-re = [
+	"(?Rm)^.*(#|//)\\s*spellchecker:disable-line$",
+	"(?s)(#|//)\\s*spellchecker:off.*?\\n\\s*(#|//)\\s*spellchecker:on",
+	"(#|//)\\s*spellchecker:ignore-next-line\\n.*"
+]
+[files]
+extend-exclude = [
+	"*-command/*",
+	"builds/*",
+	"dashboard/*",
+	"handbook/*",
+	"mustache.php/*",
+	"process/*",
+	"restful/*",
+	"spyc/*",
+	"vendor/*",
+	"wordpress-core/*",
+	"wp-cli/*",
+	"wp-cli.github.com/*",
+	"wp-super-cache-cli/*"
+]
