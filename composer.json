@@ -225,7 +225,7 @@
         "wp-cli/media-command": "dev-main",
         "wp-cli/mustangostang-spyc": "dev-master as 0.6.x-dev",
         "wp-cli/package-command": "dev-main",
-        "wp-cli/php-cli-tools": "dev-master as 0.12.x-dev",
+        "wp-cli/php-cli-tools": "dev-main as 0.12.x-dev",
         "wp-cli/profile-command": "dev-main",
         "wp-cli/restful": "dev-main",
         "wp-cli/rewrite-command": "dev-main",
@@ -263,7 +263,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "2.0.x-dev"
+            "dev-main": "2.0.x-dev"
         },
         "commands": [
             "maintenance",
