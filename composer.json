@@ -182,6 +182,18 @@
         },
         {
             "type": "path",
+            "url": "ability-command"
+        },
+        {
+            "type": "path",
+            "url": "ai-command"
+        },
+        {
+            "type": "path",
+            "url": "block-command"
+        },
+        {
+            "type": "path",
             "url": "wp-cli-tests"
         },
         {
@@ -200,6 +212,7 @@
         "johnpbloch/wordpress-core": "dev-master",
         "johnpbloch/wordpress-core-installer": "^1.0 || ^2.0",
         "wp-cli/ability-command": "^1.0@dev",
+        "wp-cli/ai-command": "^1.0@dev",
         "wp-cli/admin-command": "dev-main",
         "wp-cli/automated-tests": "dev-main",
         "wp-cli/block-command": "^1.0@dev",
