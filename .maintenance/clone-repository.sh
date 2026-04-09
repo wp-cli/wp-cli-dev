@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-if [[ $# -lt 2 ]]; then
+if [[ $# -ne 2 ]]; then
 	echo "Usage: clone-repository.sh <destination> <clone_url>" >&2
 	exit 1
 fi

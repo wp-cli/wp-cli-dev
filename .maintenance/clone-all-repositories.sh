@@ -4,6 +4,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+if ! command -v jq &>/dev/null; then
+	echo "Required command 'jq' is not installed or not available in PATH." >&2
+	exit 1
+fi
+
 SKIP_LIST=(
 	"autoload-splitter"
 	"composer-changelogs"
@@ -18,27 +23,43 @@ SKIP_LIST=(
 
 # Detect number of CPU cores, defaulting to 4.
 if command -v nproc &>/dev/null; then
-	CORES=$(nproc)
+	DETECTED_CORES=$(nproc)
 elif command -v sysctl &>/dev/null; then
-	CORES=$(sysctl -n hw.logicalcpu 2>/dev/null || echo 4)
+	DETECTED_CORES=$(sysctl -n hw.logicalcpu 2>/dev/null || echo 4)
 else
+	DETECTED_CORES=4
+fi
+
+MAX_CORES=8
+CORES="${CLONE_JOBS:-${WPCLI_DEV_JOBS:-${DETECTED_CORES}}}"
+
+if ! [[ "${CORES}" =~ ^[1-9][0-9]*$ ]]; then
 	CORES=4
+elif [[ -z "${CLONE_JOBS:-}" && -z "${WPCLI_DEV_JOBS:-}" && "${CORES}" -gt "${MAX_CORES}" ]]; then
+	CORES=${MAX_CORES}
 fi
 
 # Fetch repository list from the GitHub API.
-CURL_OPTS=(-s)
+CURL_OPTS=(-fsS)
 if [[ -n "${GITHUB_TOKEN:-}" ]]; then
 	CURL_OPTS+=(--header "Authorization: Bearer ${GITHUB_TOKEN}")
 fi
 
-RESPONSE=$(curl "${CURL_OPTS[@]}" 'https://api.github.com/orgs/wp-cli/repos?per_page=100')
+if ! RESPONSE=$(curl "${CURL_OPTS[@]}" 'https://api.github.com/orgs/wp-cli/repos?per_page=100'); then
+	echo "Failed to fetch repository list from the GitHub API." >&2
+	exit 1
+fi
 
-# Detect API errors such as rate limiting.
-if echo "${RESPONSE}" | jq -e '.message' &>/dev/null; then
-	MESSAGE=$(echo "${RESPONSE}" | jq -r '.message')
-	echo "GitHub responded with: ${MESSAGE}"
-	echo "If you are running into a rate limiting issue during large events please set GITHUB_TOKEN environment variable."
-	echo "See https://github.com/settings/tokens"
+# Validate the response shape and detect API errors such as rate limiting.
+if ! jq -e 'type == "array"' >/dev/null <<< "${RESPONSE}"; then
+	if jq -e '.message' >/dev/null <<< "${RESPONSE}"; then
+		MESSAGE=$(jq -r '.message' <<< "${RESPONSE}")
+		echo "GitHub responded with: ${MESSAGE}" >&2
+		echo "If you are running into a rate limiting issue during large events please set GITHUB_TOKEN environment variable." >&2
+		echo "See https://github.com/settings/tokens" >&2
+	else
+		echo "GitHub API returned an unexpected response; expected a JSON array of repositories." >&2
+	fi
 	exit 1
 fi
 
@@ -85,5 +106,5 @@ if [[ ${#CLONE_LIST[@]} -gt 0 ]]; then
 fi
 
 if [[ ${#UPDATE_FOLDERS[@]} -gt 0 ]]; then
-	printf '%s\n' "${UPDATE_FOLDERS[@]}" | xargs -n1 -P"${CORES}" -I% php "${SCRIPT_DIR}/refresh-repository.php" %
+	printf '%s\n' "${UPDATE_FOLDERS[@]}" | xargs -P"${CORES}" -I% php "${SCRIPT_DIR}/refresh-repository.php" %
 fi
