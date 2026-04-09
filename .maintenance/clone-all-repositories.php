@@ -35,6 +35,7 @@ if ( ! is_array( $repositories ) && property_exists( $repositories, 'message' ) 
 
 $pwd            = getcwd();
 $update_folders = [];
+$clone_list     = [];
 
 foreach ( $repositories as $repository ) {
 	if ( in_array( $repository->name, $skip_list, true ) ) {
@@ -44,13 +45,17 @@ foreach ( $repositories as $repository ) {
 	$destination = isset( $clone_destination_map[ $repository->name ] ) ? $clone_destination_map[ $repository->name ] : $repository->name;
 
 	if ( ! is_dir( $destination ) ) {
-		printf( "Fetching \033[32mwp-cli/{$repository->name}\033[0m...\n" );
-		$clone_url = getenv( 'GITHUB_ACTION' ) ? $repository->clone_url : $repository->ssh_url;
-		system( "git clone {$clone_url} {$destination}" );
+		$clone_url    = getenv( 'GITHUB_ACTION' ) ? $repository->clone_url : $repository->ssh_url;
+		$clone_list[] = "{$destination} {$clone_url}";
 	}
 
 	$update_folders[] = $destination;
 }
 
-$updates = implode( '\n', $update_folders );
+if ( ! empty( $clone_list ) ) {
+	$clones = implode( "\n", $clone_list );
+	system( "echo '$clones' | xargs -n2 -P8 php .maintenance/clone-repository.php" );
+}
+
+$updates = implode( "\n", $update_folders );
 system( "echo '$updates' | xargs -n1 -P8 -I% php .maintenance/refresh-repository.php %" );
