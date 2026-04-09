@@ -319,8 +319,8 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "scripts": {
-        "pre-install-cmd": "php .maintenance/clone-all-repositories.php",
-        "pre-update-cmd": "php .maintenance/clone-all-repositories.php",
+        "pre-install-cmd": "bash .maintenance/clone-all-repositories.sh",
+        "pre-update-cmd": "bash .maintenance/clone-all-repositories.sh",
         "post-install-cmd": [
             "php .maintenance/symlink-vendor-folders.php",
             "php .maintenance/phpstorm.exclude-recursive-folders.php"
