@@ -72,7 +72,6 @@ final class Release_Notes_Command {
 				'wp-cli/wp-cli-bundle',
 				'wp-cli/wp-cli',
 				'wp-cli/handbook',
-				'wp-cli/wp-cli.github.com',
 			) as $repo
 		) {
 			$milestones = GitHub::get_project_milestones( $repo );

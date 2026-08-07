@@ -52,7 +52,6 @@ final class Contrib_List_Command {
 				'wp-cli/wp-cli-bundle',
 				'wp-cli/wp-cli',
 				'wp-cli/handbook',
-				'wp-cli/wp-cli.github.com',
 			];
 		}
 
