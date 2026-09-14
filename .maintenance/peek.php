@@ -162,8 +162,9 @@ function peek_passthrough( array $cmd ) {
 // --------------------------------------------------------------------------
 
 /**
- * Write side of the protocol. Never fatal: if the display is gone, we
- * silently stop reporting rather than killing the job.
+ * Write side of the protocol. Never fatal: if the display is gone, we stop
+ * reporting rather than killing the job; connected() tells the caller so it
+ * can let the output through instead.
  */
 class PeekFeed {
 
@@ -181,19 +182,28 @@ class PeekFeed {
 		}
 	}
 
+	public function connected() {
+		return null !== $this->sock;
+	}
+
+	/**
+	 * @return bool Whether the display received the datagram.
+	 */
 	public function send( $kind, $payload ) {
 		if ( ! $this->sock ) {
-			return;
+			return false;
 		}
 		$data = $kind . PEEK_SEP . $this->lane . PEEK_SEP . substr( $payload, 0, PEEK_MAXLINE );
 		$sent = @stream_socket_sendto( $this->sock, $data );
 		if ( false === $sent || $sent < 0 ) {
 			$this->sock = null;
+			return false;
 		}
+		return true;
 	}
 
 	public function line( $raw ) {
-		$this->send( 'LINE', $raw );
+		return $this->send( 'LINE', $raw );
 	}
 
 	public function close( $rc ) {
@@ -231,6 +241,10 @@ function peek_cmd_run( array $argv ) {
 	}
 
 	$feed = new PeekFeed( getmypid(), null !== $name ? $name : implode( ' ', $rest ) );
+	if ( ! $feed->connected() ) {
+		// The display is gone already: behave exactly like a plain passthrough.
+		return peek_passthrough( $rest );
+	}
 	$spec = array(
 		0 => STDIN,
 		1 => array( 'pipe', 'w' ),
@@ -243,7 +257,11 @@ function peek_cmd_run( array $argv ) {
 		return 127;
 	}
 	while ( false !== ( $line = fgets( $pipes[1] ) ) ) {
-		$feed->line( rtrim( $line, "\n" ) );
+		if ( ! $feed->line( rtrim( $line, "\n" ) ) ) {
+			// The display went away mid-run: let the output through rather
+			// than dropping it.
+			@fwrite( STDOUT, $line );
+		}
 	}
 	fclose( $pipes[1] );
 	$rc = proc_close( $proc );
