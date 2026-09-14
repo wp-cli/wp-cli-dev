@@ -14,8 +14,9 @@
  * `peek.php run` becomes its command unchanged, so scripts work either way.
  *
  * Degrades to a plain passthrough when the platform cannot support the
- * display (Windows, no unix domain datagram sockets, PHP < 7.4) or when
- * NO_PEEK is set in the environment.
+ * display (Windows, no unix domain datagram sockets, PHP < 7.4), when
+ * stdout is not a terminal (CI logs, pipes) or when NO_PEEK is set in the
+ * environment.
  */
 
 const PEEK_SEP     = "\x1f";
@@ -300,7 +301,7 @@ class PeekLane {
 		return null === $this->rc;
 	}
 
-	public function header( $frame, $width, $color = true ) {
+	public function header( $frame, $width ) {
 		$spin = peek_spinner();
 		if ( null === $this->rc ) {
 			$glyph      = $spin[ $frame % count( $spin ) ];
@@ -322,9 +323,6 @@ class PeekLane {
 		$name_fit  = peek_fit( $this->name, max( 0, $width - $right_len - 4 ) );
 		$plain     = $glyph . ' ' . $name_fit;
 		$pad       = str_repeat( ' ', max( 1, $width - peek_len( $plain ) - $right_len ) );
-		if ( ! $color ) {
-			return $plain . $pad . $right;
-		}
 		if ( null === $this->rc ) {
 			$styled_name = PEEK_BOLD . $name_fit . PEEK_RESET;
 		} elseif ( 0 === $this->rc ) {
@@ -389,23 +387,11 @@ class PeekDisplay {
 		return array( $running, $ok, $failed );
 	}
 
-	public function footer( $color = true ) {
+	public function footer() {
 		list( $running, $ok, $failed ) = $this->counts();
 		$elapsed                       = peek_dur( microtime( true ) - $this->start );
-		if ( ! $color ) {
-			$bits = array();
-			if ( $running ) {
-				$bits[] = $running . ' running';
-			}
-			$bits[] = 'ok ' . $ok;
-			if ( $failed ) {
-				$bits[] = 'failed ' . $failed;
-			}
-			$bits[] = $elapsed;
-			return implode( ' · ', $bits );
-		}
-		$sep  = PEEK_GREY . ' · ' . PEEK_RESET;
-		$bits = array();
+		$sep                           = PEEK_GREY . ' · ' . PEEK_RESET;
+		$bits                          = array();
 		if ( $running ) {
 			$bits[] = PEEK_CYAN . $running . ' running' . PEEK_RESET;
 		}
@@ -480,15 +466,6 @@ class PeekDisplay {
 		$this->prev = count( $live );
 		++$this->frame;
 	}
-
-	public function summary() {
-		$lines = array();
-		foreach ( $this->order as $key ) {
-			$lines[] = $this->lanes[ $key ]->header( 0, 80, false );
-		}
-		$lines[] = $this->footer( false );
-		return $lines;
-	}
 }
 
 function peek_drain( $srv, PeekDisplay $disp ) {
@@ -540,6 +517,13 @@ function peek_cmd_serve( array $argv ) {
 		return peek_passthrough( $rest );
 	}
 
+	// Without a terminal there is nothing to draw on, and the wrappers would
+	// pipe every job's output into a display that never shows it. CI logs and
+	// pipes get the jobs' plain output instead.
+	if ( ! function_exists( 'stream_isatty' ) || ! @stream_isatty( STDOUT ) ) {
+		return peek_passthrough( $rest );
+	}
+
 	$tmp = sys_get_temp_dir() . '/peek.' . getmypid() . '.' . substr( md5( uniqid( '', true ) ), 0, 6 );
 	if ( ! @mkdir( $tmp, 0700, true ) ) {
 		return peek_passthrough( $rest );
@@ -555,21 +539,13 @@ function peek_cmd_serve( array $argv ) {
 	$env              = getenv();
 	$env['PEEK_SOCK'] = $sock_path;
 
-	$tty = function_exists( 'stream_isatty' ) && @stream_isatty( STDOUT );
-
 	// The driver's own output would fight the live region, so hold it back
 	// and replay it once the display tears down.
-	$spec = $tty
-		? array(
-			0 => STDIN,
-			1 => array( 'pipe', 'w' ),
-			2 => array( 'redirect', 1 ),
-		)
-		: array(
-			0 => STDIN,
-			1 => STDOUT,
-			2 => STDERR,
-		);
+	$spec = array(
+		0 => STDIN,
+		1 => array( 'pipe', 'w' ),
+		2 => array( 'redirect', 1 ),
+	);
 	$proc = @proc_open( $rest, $spec, $pipes, null, $env );
 	if ( ! is_resource( $proc ) ) {
 		fclose( $srv );
@@ -581,26 +557,22 @@ function peek_cmd_serve( array $argv ) {
 
 	$disp    = new PeekDisplay( $peek_lines );
 	$held    = '';
-	$restore = function () use ( $tty ) {
-		if ( $tty ) {
-			fwrite( STDOUT, "\033[?25h" );
-			fflush( STDOUT );
-		}
+	$restore = function () {
+		fwrite( STDOUT, "\033[?25h" );
+		fflush( STDOUT );
 	};
-	if ( $tty ) {
-		fwrite( STDOUT, "\033[?25l" );
-		register_shutdown_function( $restore );
-		if ( function_exists( 'pcntl_async_signals' ) ) {
-			pcntl_async_signals( true );
-			$on_signal = function () use ( $restore ) {
-				$restore();
-				exit( 130 );
-			};
-			pcntl_signal( SIGINT, $on_signal );
-			pcntl_signal( SIGTERM, $on_signal );
-		}
-		stream_set_blocking( $pipes[1], false );
+	fwrite( STDOUT, "\033[?25l" );
+	register_shutdown_function( $restore );
+	if ( function_exists( 'pcntl_async_signals' ) ) {
+		pcntl_async_signals( true );
+		$on_signal = function () use ( $restore ) {
+			$restore();
+			exit( 130 );
+		};
+		pcntl_signal( SIGINT, $on_signal );
+		pcntl_signal( SIGTERM, $on_signal );
 	}
+	stream_set_blocking( $pipes[1], false );
 
 	$frame_us = (int) ( 1000000 / max( $fps, 1 ) );
 	$exit     = null;
@@ -610,21 +582,19 @@ function peek_cmd_serve( array $argv ) {
 			$exit = $status['exitcode'];
 		}
 		$read = array( $srv );
-		if ( $tty && is_resource( $pipes[1] ) && ! feof( $pipes[1] ) ) {
+		if ( is_resource( $pipes[1] ) && ! feof( $pipes[1] ) ) {
 			$read[] = $pipes[1];
 		}
 		$write  = null;
 		$except = null;
 		@stream_select( $read, $write, $except, 0, $frame_us );
 		peek_drain( $srv, $disp );
-		if ( $tty && is_resource( $pipes[1] ) ) {
+		if ( is_resource( $pipes[1] ) ) {
 			while ( false !== ( $chunk = fread( $pipes[1], 65536 ) ) && '' !== $chunk ) {
 				$held .= $chunk;
 			}
 		}
-		if ( $tty ) {
-			$disp->draw( STDOUT );
-		}
+		$disp->draw( STDOUT );
 		if ( null !== $exit ) {
 			break;
 		}
@@ -632,28 +602,20 @@ function peek_cmd_serve( array $argv ) {
 
 	usleep( 250000 ); // Drain late EXIT datagrams.
 	peek_drain( $srv, $disp );
-	if ( $tty ) {
-		while ( is_resource( $pipes[1] ) && false !== ( $chunk = fread( $pipes[1], 65536 ) ) && '' !== $chunk ) {
-			$held .= $chunk;
-		}
-		$disp->draw( STDOUT );
-		fclose( $pipes[1] );
+	while ( is_resource( $pipes[1] ) && false !== ( $chunk = fread( $pipes[1], 65536 ) ) && '' !== $chunk ) {
+		$held .= $chunk;
 	}
+	$disp->draw( STDOUT );
+	fclose( $pipes[1] );
 	proc_close( $proc );
 	fclose( $srv );
 	@unlink( $sock_path );
 	@rmdir( $tmp );
 	$restore();
 
-	if ( $tty ) {
-		if ( '' !== $held ) {
-			fwrite( STDOUT, $held );
-			fflush( STDOUT );
-		}
-	} else {
-		foreach ( $disp->summary() as $line ) {
-			fwrite( STDOUT, $line . "\n" );
-		}
+	if ( '' !== $held ) {
+		fwrite( STDOUT, $held );
+		fflush( STDOUT );
 	}
 	return null === $exit ? 0 : $exit;
 }
