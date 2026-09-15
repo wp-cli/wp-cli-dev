@@ -29,7 +29,7 @@ final class Bundle {
 		'wp-cli/autoload-splitter',
 		'wp-cli/wp-config-transformer',
 		'wp-cli/php-cli-tools',
-		'wp-cli/spyc',
+		'wp-cli/mustangostang-spyc',
 	];
 
 	/**
@@ -112,20 +112,10 @@ final class Bundle {
 	 *                                              previous release.
 	 */
 	public static function get_previous_release_lock( $release = null ) {
-		$release  = $release ? ltrim( $release, 'v' ) : null;
-		$previous = null;
-
-		foreach ( GitHub::get_project_milestones( self::REPO, [ 'state' => 'closed' ] ) as $milestone ) {
-			$title = ltrim( $milestone->title, 'v' );
-
-			if ( $release && ! version_compare( $title, $release, '<' ) ) {
-				continue;
-			}
-
-			if ( null === $previous || version_compare( $title, $previous, '>' ) ) {
-				$previous = $title;
-			}
-		}
+		$previous = self::find_previous_release(
+			GitHub::get_project_milestones( self::REPO, [ 'state' => 'closed' ] ),
+			$release
+		);
 
 		if ( null === $previous ) {
 			return [ null, null ];
@@ -137,22 +127,60 @@ final class Bundle {
 	}
 
 	/**
+	 * Picks the highest release version below the given one out of a list of
+	 * milestones. Milestones whose title is not a version are ignored.
+	 *
+	 * @param array       $milestones Milestone objects with a `title`.
+	 * @param string|null $release    Bundle release version, e.g. '3.0.0'.
+	 *                                Without it, the highest version wins.
+	 *
+	 * @return string|null Version without leading 'v', or null when there is
+	 *                     no release below the given one.
+	 */
+	public static function find_previous_release( array $milestones, $release = null ) {
+		$release  = $release ? ltrim( $release, 'v' ) : null;
+		$previous = null;
+
+		foreach ( $milestones as $milestone ) {
+			$title = ltrim( $milestone->title, 'v' );
+
+			if ( ! self::is_version( $title ) ) {
+				continue;
+			}
+
+			if ( $release && ! version_compare( $title, $release, '<' ) ) {
+				continue;
+			}
+
+			if ( null === $previous || version_compare( $title, $previous, '>' ) ) {
+				$previous = $title;
+			}
+		}
+
+		return $previous;
+	}
+
+	/**
 	 * Fetches and decodes the composer.lock of wp-cli/wp-cli-bundle at a ref.
 	 *
-	 * @param string $ref          Branch, tag or commit.
-	 * @param bool   $throw_errors Whether a missing lockfile is fatal.
+	 * @param string $ref              Branch, tag or commit.
+	 * @param bool   $missing_is_fatal Whether a ref without a lockfile (HTTP
+	 *                                 404) is fatal. Any other failure always
+	 *                                 is, so that a rate limit or an outage
+	 *                                 never passes for a missing tag.
 	 *
-	 * @return array|false
+	 * @return array|false Decoded lockfile, or false when the ref has none
+	 *                     and that is not fatal.
 	 */
-	public static function get_lock( $ref, $throw_errors = true ) {
+	public static function get_lock( $ref, $missing_is_fatal = true ) {
 		$url      = sprintf( 'https://raw.githubusercontent.com/%s/%s/composer.lock', self::REPO, $ref );
 		$response = Utils\http_request( 'GET', $url );
 
-		if ( 200 !== $response->status_code ) {
-			if ( ! $throw_errors ) {
-				return false;
-			}
+		if ( 404 === (int) $response->status_code && ! $missing_is_fatal ) {
+			return false;
+		}
 
+		if ( 200 !== (int) $response->status_code ) {
 			WP_CLI::error( sprintf( 'Could not fetch %s (HTTP code %d)', $url, $response->status_code ) );
 		}
 
@@ -202,24 +230,41 @@ final class Bundle {
 	 * @return array
 	 */
 	public static function get_shipped_milestones( $package, $previous_version, $current_version ) {
-		$milestones = GitHub::get_project_milestones( $package, [ 'state' => 'closed' ] );
+		return self::filter_shipped_milestones(
+			GitHub::get_project_milestones( $package, [ 'state' => 'closed' ] ),
+			$previous_version,
+			$current_version
+		);
+	}
 
+	/**
+	 * Keeps the milestones whose version lies in (previous, current]. A
+	 * version that cannot be compared, such as `dev-main`, does not bound;
+	 * milestones whose title is not a version are dropped.
+	 *
+	 * @param array       $milestones       Milestone objects with a `title`.
+	 * @param string|null $previous_version Version locked by the previous release.
+	 * @param string|null $current_version  Version locked by this release.
+	 *
+	 * @return array
+	 */
+	public static function filter_shipped_milestones( array $milestones, $previous_version, $current_version ) {
 		return array_values(
 			array_filter(
 				$milestones,
 				static function ( $milestone ) use ( $previous_version, $current_version ) {
 					$title = ltrim( $milestone->title, 'v' );
 
-					if ( ! self::is_numeric_version( $title ) ) {
+					if ( ! self::is_version( $title ) ) {
 						return false;
 					}
 
-					if ( self::is_numeric_version( $previous_version )
+					if ( self::is_version( $previous_version )
 						&& ! version_compare( $title, $previous_version, '>' ) ) {
 						return false;
 					}
 
-					if ( self::is_numeric_version( $current_version )
+					if ( self::is_version( $current_version )
 						&& version_compare( $title, $current_version, '>' ) ) {
 						return false;
 					}
@@ -244,13 +289,14 @@ final class Bundle {
 	}
 
 	/**
-	 * Checks whether a version can be compared, as opposed to `dev-main`.
+	 * Checks whether a string is a version that can be compared, such as
+	 * `2.12.0` or `3.0.0-beta1`, as opposed to `dev-main` or `3.0.0 (docs)`.
 	 *
 	 * @param string|null $version Version string, or null when unknown.
 	 *
 	 * @return bool
 	 */
-	private static function is_numeric_version( $version ) {
-		return null !== $version && (bool) preg_match( '/^\d+(\.\d+)*/', $version );
+	public static function is_version( $version ) {
+		return null !== $version && (bool) preg_match( '/^\d+(\.\d+)*(-[0-9A-Za-z.]+)?$/', $version );
 	}
 }

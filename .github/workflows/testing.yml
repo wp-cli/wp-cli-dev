@@ -1,0 +1,12 @@
+name: Testing
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    uses: wp-cli/.github/.github/workflows/reusable-testing.yml@main

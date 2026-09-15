@@ -289,42 +289,8 @@ final class Release_Command {
 	}
 
 	private function get_bundle_repos() {
-		$repos             = [];
-		$default_branch    = GitHub::get_default_branch( 'wp-cli/wp-cli-bundle' );
-		$composer_lock_url = "https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/{$default_branch}/composer.lock";
-		$response          = Utils\http_request( 'GET', $composer_lock_url );
-		if ( 200 !== $response->status_code ) {
-			WP_CLI::error( sprintf( 'Could not fetch composer.json (HTTP code %d)', $response->status_code ) );
-		}
-		$composer_json = json_decode( $response->body, true );
+		$default_branch = GitHub::get_default_branch( Bundle::REPO );
 
-		usort(
-			$composer_json['packages'],
-			static function ( $a, $b ) {
-				return $a['name'] < $b['name'] ? - 1 : 1;
-			}
-		);
-
-		foreach ( $composer_json['packages'] as $package ) {
-			$package_name = $package['name'];
-			if ( ! preg_match( '#^wp-cli/.+-command$#', $package_name )
-				&& ! in_array(
-					$package_name,
-					array(
-						'wp-cli/wp-cli-tests',
-						'wp-cli/regenerate-readme',
-						'wp-cli/autoload-splitter',
-						'wp-cli/wp-config-transformer',
-						'wp-cli/php-cli-tools',
-						'wp-cli/spyc',
-					),
-					true
-				) ) {
-				continue;
-			}
-			$repos[] = $package_name;
-		}
-
-		return $repos;
+		return array_keys( Bundle::get_packages( Bundle::get_lock( $default_branch ) ) );
 	}
 }
