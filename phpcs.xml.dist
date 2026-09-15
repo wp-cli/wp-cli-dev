@@ -52,4 +52,23 @@
 		<exclude-pattern>*/.maintenance/*</exclude-pattern>
 	</rule>
 
+	<!-- peek.php is a self-contained, single-file tool that is meant to be
+		 copied around as-is, so it deliberately mixes functions and classes. -->
+	<rule ref="Universal.Files.SeparateFunctionsFromOO">
+		<exclude-pattern>*/.maintenance/peek.php</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Files.OneObjectStructurePerFile">
+		<exclude-pattern>*/.maintenance/peek.php</exclude-pattern>
+	</rule>
+
+	<!-- peek.php probes optional platform features (unix domain sockets,
+		 pcntl, stty, proc_open) and treats every failure as "unsupported, fall
+		 back to a plain passthrough". Silencing is the error handling there. -->
+	<rule ref="WordPress.PHP.NoSilencedErrors">
+		<exclude-pattern>*/.maintenance/peek.php</exclude-pattern>
+	</rule>
+	<rule ref="Generic.CodeAnalysis.AssignmentInCondition">
+		<exclude-pattern>*/.maintenance/peek.php</exclude-pattern>
+	</rule>
+
 </ruleset>
