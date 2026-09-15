@@ -4,6 +4,7 @@
 !/.github/
 !/.maintenance/
 !/.readme-partials/
+!/tests/
 
 composer.lock
 *.log
