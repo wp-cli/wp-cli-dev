@@ -19,6 +19,19 @@ final class Release_Notes_Command {
 	 * : Name of one or more milestones to fetch the release notes for. If none
 	 * are passed, the current open one is assumed.
 	 *
+	 * [--release=<version>]
+	 * : Version of the bundle release, e.g. 3.0.0. Uses the milestone with
+	 * that title in wp-cli/wp-cli-bundle, wp-cli/wp-cli and wp-cli/handbook
+	 * instead of the currently open one, and reads the bundled packages from
+	 * the composer.lock at the release tag of wp-cli/wp-cli-bundle. Only
+	 * applies when no repo is passed.
+	 *
+	 * [--bundle-ref=<ref>]
+	 * : Branch, tag or commit of wp-cli/wp-cli-bundle whose composer.lock lists
+	 * the packages and versions shipped in this release. Defaults to the
+	 * release tag when --release is passed and the tag exists, and to the
+	 * default branch otherwise. Only applies when no repo is passed.
+	 *
 	 * [--source=<source>]
 	 * : Choose source from where to copy content.
 	 * ---
@@ -48,8 +61,10 @@ final class Release_Notes_Command {
 
 		$milestone_names = $args;
 
-		$source = Utils\get_flag_value( $assoc_args, 'source', 'release' );
-		$format = Utils\get_flag_value( $assoc_args, 'format', 'markdown' );
+		$source     = Utils\get_flag_value( $assoc_args, 'source', 'release' );
+		$format     = Utils\get_flag_value( $assoc_args, 'format', 'markdown' );
+		$release    = Utils\get_flag_value( $assoc_args, 'release' );
+		$bundle_ref = Utils\get_flag_value( $assoc_args, 'bundle-ref' );
 
 		if ( $repo ) {
 			$this->get_repo_release_notes(
@@ -62,28 +77,13 @@ final class Release_Notes_Command {
 			return;
 		}
 
-		$this->get_bundle_release_notes( $source, $format );
+		$this->get_bundle_release_notes( $source, $format, $release, $bundle_ref );
 	}
 
-	private function get_bundle_release_notes( $source, $format ) {
-		// Get the release notes for the lowest open project milestones.
-		foreach (
-			array(
-				'wp-cli/wp-cli-bundle',
-				'wp-cli/wp-cli',
-				'wp-cli/handbook',
-			) as $repo
-		) {
-			$milestones = GitHub::get_project_milestones( $repo );
-			$milestone  = array_reduce(
-				$milestones,
-				static function ( $latest, $milestone ) {
-					if ( null === $latest ) {
-						return $milestone;
-					}
-					return version_compare( $milestone->title, $latest->title, '<' ) ? $milestone : $latest;
-				}
-			);
+	private function get_bundle_release_notes( $source, $format, $release, $bundle_ref ) {
+		// Get the release notes for the milestones of the release repositories.
+		foreach ( Bundle::RELEASE_REPOS as $repo ) {
+			$milestone = Bundle::get_release_milestone( $repo, $release );
 
 			if ( ! $milestone ) {
 				WP_CLI::debug( "No milestone found for repo '{$repo}'", 'release-notes' );
@@ -103,84 +103,27 @@ final class Release_Notes_Command {
 		}
 
 		// Identify all command dependencies and their release notes
+		list( $ref, $lock )                   = Bundle::get_release_lock( $release, $bundle_ref );
+		list( $previous_ref, $previous_lock ) = Bundle::get_previous_release_lock( $release );
 
-		$bundle = 'wp-cli/wp-cli-bundle';
+		WP_CLI::debug( "Bundled packages read from wp-cli/wp-cli-bundle@{$ref}, previous release: " . ( $previous_ref ?: 'none' ), 'release-notes' );
 
-		$milestones = GitHub::get_project_milestones(
-			$bundle,
-			array( 'state' => 'closed' )
-		);
+		$previous_versions = $previous_lock ? Bundle::get_packages( $previous_lock ) : [];
 
-		$milestone = array_reduce(
-			$milestones,
-			function ( $tag, $milestone ) {
-				if ( ! $tag ) {
-					return $milestone->title;
-				}
-				return version_compare( $milestone->title, $tag, '>' ) ? $milestone->title : $tag;
-			}
-		);
+		foreach ( Bundle::get_packages( $lock ) as $package_name => $version ) {
+			$previous_version = isset( $previous_versions[ $package_name ] ) ? $previous_versions[ $package_name ] : null;
 
-		$tag = ! empty( $milestone ) ? "v{$milestone}" : GitHub::get_default_branch( $bundle );
+			// Closed milestones denote a tagged release
+			$milestones = Bundle::get_shipped_milestones( $package_name, $previous_version, $version );
 
-		$composer_lock_url = sprintf(
-			'https://raw.githubusercontent.com/%s/%s/composer.lock',
-			$bundle,
-			$tag
-		);
-		$response          = Utils\http_request( 'GET', $composer_lock_url );
-		if ( 200 !== $response->status_code ) {
-			WP_CLI::error(
-				sprintf(
-					'Could not fetch composer.json (HTTP code %d)',
-					$response->status_code
-				)
-			);
-		}
-		$composer_json = json_decode( $response->body, true );
-
-		usort(
-			$composer_json['packages'],
-			function ( $a, $b ) {
-				return $a['name'] < $b['name'] ? - 1 : 1;
-			}
-		);
-
-		foreach ( $composer_json['packages'] as $package ) {
-			$package_name       = $package['name'];
-			$version_constraint = str_replace( 'v', '', $package['version'] );
-			if ( ! preg_match( '#^wp-cli/.+-command$#', $package_name )
-				&& ! in_array(
-					$package_name,
-					array(
-						'wp-cli/wp-cli-tests',
-						'wp-cli/regenerate-readme',
-						'wp-cli/autoload-splitter',
-						'wp-cli/wp-config-transformer',
-						'wp-cli/php-cli-tools',
-						'wp-cli/spyc',
-					),
-					true
-				) ) {
+			if ( empty( $milestones ) ) {
+				WP_CLI::debug( "No releases of '{$package_name}' shipped since " . ( $previous_ref ?: 'the beginning' ), 'release-notes' );
 				continue;
 			}
 
 			WP_CLI::log( $this->repo_heading( $package_name, $format ) );
 
-			// Closed milestones denote a tagged release
-			$milestones = GitHub::get_project_milestones(
-				$package_name,
-				array( 'state' => 'closed' )
-			);
 			foreach ( $milestones as $milestone ) {
-				if ( ! version_compare(
-					$milestone->title,
-					$version_constraint,
-					'>'
-				) ) {
-					continue;
-				}
-
 				$this->get_repo_release_notes(
 					$package_name,
 					$milestone->title,

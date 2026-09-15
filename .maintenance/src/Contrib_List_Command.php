@@ -21,6 +21,19 @@ final class Contrib_List_Command {
 	 * : Name of one or more milestones to fetch the release notes for. If none
 	 * are passed, the current open one is assumed.
 	 *
+	 * [--release=<version>]
+	 * : Version of the bundle release, e.g. 3.0.0. Uses the milestone with
+	 * that title in wp-cli/wp-cli-bundle, wp-cli/wp-cli and wp-cli/handbook
+	 * instead of the currently open one, and reads the bundled packages from
+	 * the composer.lock at the release tag of wp-cli/wp-cli-bundle. Only
+	 * applies when no repo is passed.
+	 *
+	 * [--bundle-ref=<ref>]
+	 * : Branch, tag or commit of wp-cli/wp-cli-bundle whose composer.lock lists
+	 * the packages and versions shipped in this release. Defaults to the
+	 * release tag when --release is passed and the tag exists, and to the
+	 * default branch otherwise. Only applies when no repo is passed.
+	 *
 	 * [--format=<format>]
 	 * : Render output in a specific format.
 	 * ---
@@ -46,13 +59,12 @@ final class Contrib_List_Command {
 
 		$milestone_names = $args;
 
+		$release    = Utils\get_flag_value( $assoc_args, 'release' );
+		$bundle_ref = Utils\get_flag_value( $assoc_args, 'bundle-ref' );
+
 		if ( empty( $repos ) ) {
 			$use_bundle = true;
-			$repos      = [
-				'wp-cli/wp-cli-bundle',
-				'wp-cli/wp-cli',
-				'wp-cli/handbook',
-			];
+			$repos      = Bundle::RELEASE_REPOS;
 		}
 
 		$contributors       = array();
@@ -95,21 +107,15 @@ final class Contrib_List_Command {
 					);
 				}
 			} else {
-				$milestones = GitHub::get_project_milestones( $repo );
-				// Cheap way to get the latest milestone
-				$milestone = array_shift( $milestones );
-				if ( ! $milestone ) {
-					continue;
-				}
+				$milestone  = Bundle::get_release_milestone( $repo, $use_bundle ? $release : null );
+				$milestones = $milestone ? [ $milestone ] : [];
 			}
-			$entries = array();
+
 			foreach ( $milestones as $milestone ) {
-				WP_CLI::debug( "Using milestone '{$milestone->title}' for repo '{$repo}'", 'release-notes' );
-				WP_CLI::log( 'Current open ' . $repo . ' milestone: ' . $milestone->title );
+				WP_CLI::debug( "Using milestone '{$milestone->title}' for repo '{$repo}'", 'contrib-list' );
 				$pull_requests     = GitHub::get_project_milestone_pull_requests( $repo, $milestone->number );
 				$repo_contributors = GitHub::parse_contributors_from_pull_requests( $pull_requests );
-				WP_CLI::log( ' - Contributors: ' . count( $repo_contributors ) );
-				WP_CLI::log( ' - Pull requests: ' . count( $pull_requests ) );
+				WP_CLI::debug( count( $repo_contributors ) . ' contributors, ' . count( $pull_requests ) . " pull requests in '{$repo}' milestone '{$milestone->title}'", 'contrib-list' );
 				$pull_request_count += count( $pull_requests );
 				$contributors        = array_merge( $contributors, $repo_contributors );
 			}
@@ -117,80 +123,36 @@ final class Contrib_List_Command {
 
 		if ( $use_bundle ) {
 			// Identify all command dependencies and their contributors
+			list( $ref, $lock )                   = Bundle::get_release_lock( $release, $bundle_ref );
+			list( $previous_ref, $previous_lock ) = Bundle::get_previous_release_lock( $release );
 
-			$bundle = 'wp-cli/wp-cli-bundle';
+			WP_CLI::debug( "Bundled packages read from wp-cli/wp-cli-bundle@{$ref}, previous release: " . ( $previous_ref ?: 'none' ), 'contrib-list' );
 
-			$milestones = GitHub::get_project_milestones( $bundle, array( 'state' => 'closed' ) );
-			$milestone  = array_reduce(
-				$milestones,
-				function ( $tag, $milestone ) {
-					if ( ! $tag ) {
-						return $milestone->title;
-					}
-					return version_compare( $milestone->title, $tag, '>' ) ? $milestone->title : $tag;
-				}
-			);
-			$tag        = ! empty( $milestone ) ? "v{$milestone}" : GitHub::get_default_branch( $bundle );
+			$previous_versions = $previous_lock ? Bundle::get_packages( $previous_lock ) : [];
 
-			$composer_lock_url = sprintf( 'https://raw.githubusercontent.com/%s/%s/composer.lock', $bundle, $tag );
-			WP_CLI::log( 'Fetching ' . $composer_lock_url );
-			$response = Utils\http_request( 'GET', $composer_lock_url );
-			if ( 200 !== $response->status_code ) {
-				WP_CLI::error( sprintf( 'Could not fetch composer.json (HTTP code %d)', $response->status_code ) );
-			}
-			$composer_json = json_decode( $response->body, true );
+			foreach ( Bundle::get_packages( $lock ) as $package_name => $version ) {
+				$previous_version = isset( $previous_versions[ $package_name ] ) ? $previous_versions[ $package_name ] : null;
 
-			// TODO: Only need for initial v2.
-			$composer_json['packages'][] = array(
-				'name'    => 'wp-cli/i18n-command',
-				'version' => 'v2',
-			);
-			usort(
-				$composer_json['packages'],
-				function ( $a, $b ) {
-					return $a['name'] < $b['name'] ? -1 : 1;
-				}
-			);
-
-			foreach ( $composer_json['packages'] as $package ) {
-				$package_name       = $package['name'];
-				$version_constraint = str_replace( 'v', '', $package['version'] );
-				if ( ! preg_match( '#^wp-cli/.+-command$#', $package_name )
-					&& ! in_array(
-						$package_name,
-						array(
-							'wp-cli/wp-cli-tests',
-							'wp-cli/regenerate-readme',
-							'wp-cli/autoload-splitter',
-							'wp-cli/wp-config-transformer',
-							'wp-cli/php-cli-tools',
-							'wp-cli/spyc',
-						),
-						true
-					) ) {
-					continue;
-				}
 				// Closed milestones denote a tagged release
-				$milestones       = GitHub::get_project_milestones( $package_name, array( 'state' => 'closed' ) );
-				$milestone_ids    = array();
-				$milestone_titles = array();
-				foreach ( $milestones as $milestone ) {
-					if ( ! version_compare( $milestone->title, $version_constraint, '>' ) ) {
-						continue;
-					}
-					$milestone_ids[]    = $milestone->number;
-					$milestone_titles[] = $milestone->title;
-				}
+				$milestones = Bundle::get_shipped_milestones( $package_name, $previous_version, $version );
+
 				// No shipped releases for this milestone.
-				if ( empty( $milestone_ids ) ) {
+				if ( empty( $milestones ) ) {
 					continue;
 				}
-				WP_CLI::log( 'Closed ' . $package_name . ' milestone(s): ' . implode( ', ', $milestone_titles ) );
-				foreach ( $milestone_ids as $milestone_id ) {
-					$pull_requests     = GitHub::get_project_milestone_pull_requests( $package_name, $milestone_id );
+
+				$milestone_titles = array_map(
+					static function ( $milestone ) {
+						return $milestone->title;
+					},
+					$milestones
+				);
+				WP_CLI::debug( "Closed {$package_name} milestone(s): " . implode( ', ', $milestone_titles ), 'contrib-list' );
+
+				foreach ( $milestones as $milestone ) {
+					$pull_requests     = GitHub::get_project_milestone_pull_requests( $package_name, $milestone->number );
 					$repo_contributors = GitHub::parse_contributors_from_pull_requests( $pull_requests );
-					WP_CLI::log( ' - Contributors: ' . count( $repo_contributors ) );
-					WP_CLI::log( ' - Pull requests: ' . count( $pull_requests ) );
+					WP_CLI::debug( count( $repo_contributors ) . ' contributors, ' . count( $pull_requests ) . " pull requests in '{$package_name}' milestone '{$milestone->title}'", 'contrib-list' );
 					$pull_request_count += count( $pull_requests );
 					$contributors        = array_merge( $contributors, $repo_contributors );
 				}

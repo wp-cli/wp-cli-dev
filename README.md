@@ -64,7 +64,7 @@ wp maintenance
 Lists all contributors to this release.
 
 ~~~
-wp maintenance contrib-list [<repo>] [<milestone>...] [--format=<format>]
+wp maintenance contrib-list [<repo>] [<milestone>...] [--release=<version>] [--bundle-ref=<ref>] [--format=<format>]
 ~~~
 
 Run within the main WP-CLI project repository.
@@ -79,6 +79,19 @@ Run within the main WP-CLI project repository.
 	[<milestone>...]
 		Name of one or more milestones to fetch the release notes for. If none
 		are passed, the current open one is assumed.
+
+	[--release=<version>]
+		Version of the bundle release, e.g. 3.0.0. Uses the milestone with
+		that title in wp-cli/wp-cli-bundle, wp-cli/wp-cli and wp-cli/handbook
+		instead of the currently open one, and reads the bundled packages from
+		the composer.lock at the release tag of wp-cli/wp-cli-bundle. Only
+		applies when no repo is passed.
+
+	[--bundle-ref=<ref>]
+		Branch, tag or commit of wp-cli/wp-cli-bundle whose composer.lock lists
+		the packages and versions shipped in this release. Defaults to the
+		release tag when --release is passed and the tag exists, and to the
+		default branch otherwise. Only applies when no repo is passed.
 
 	[--format=<format>]
 		Render output in a specific format.
@@ -153,7 +166,7 @@ wp maintenance release-date <repo> <release>
 Gets the release notes for one or more milestones of a repository.
 
 ~~~
-wp maintenance release-notes [<repo>] [<milestone>...] [--source=<source>] [--format=<format>]
+wp maintenance release-notes [<repo>] [<milestone>...] [--release=<version>] [--bundle-ref=<ref>] [--source=<source>] [--format=<format>]
 ~~~
 
 **OPTIONS**
@@ -166,6 +179,19 @@ wp maintenance release-notes [<repo>] [<milestone>...] [--source=<source>] [--fo
 	[<milestone>...]
 		Name of one or more milestones to fetch the release notes for. If none
 		are passed, the current open one is assumed.
+
+	[--release=<version>]
+		Version of the bundle release, e.g. 3.0.0. Uses the milestone with
+		that title in wp-cli/wp-cli-bundle, wp-cli/wp-cli and wp-cli/handbook
+		instead of the currently open one, and reads the bundled packages from
+		the composer.lock at the release tag of wp-cli/wp-cli-bundle. Only
+		applies when no repo is passed.
+
+	[--bundle-ref=<ref>]
+		Branch, tag or commit of wp-cli/wp-cli-bundle whose composer.lock lists
+		the packages and versions shipped in this release. Defaults to the
+		release tag when --release is passed and the tag exists, and to the
+		default branch otherwise. Only applies when no repo is passed.
 
 	[--source=<source>]
 		Choose source from where to copy content.
