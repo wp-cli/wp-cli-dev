@@ -5,7 +5,7 @@ Sets up a WP-CLI development environment that allows for easy development across
 
 This allows easy development across all packages and contains additional maintenance commands that simplify repository chores and the release process.
 
-
+[![Testing](https://github.com/wp-cli/wp-cli-dev/actions/workflows/testing.yml/badge.svg)](https://github.com/wp-cli/wp-cli-dev/actions/workflows/testing.yml)
 
 Quick links: [Installation](#installation) | [Development](#development) | [Using](#using) | [Contributing](#contributing) | [Support](#support)
 
