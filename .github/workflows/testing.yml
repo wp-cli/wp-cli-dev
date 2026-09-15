@@ -10,3 +10,8 @@ on:
 jobs:
   test:
     uses: wp-cli/.github/.github/workflows/reusable-testing.yml@main
+    with:
+      # composer.json still allows PHP 7.2, but the development environment
+      # cannot be installed below 7.4: johnpbloch/wordpress-core dev-master
+      # requires it, so `composer install` fails on the 7.2 and 7.3 legs.
+      minimum-php: '7.4'
