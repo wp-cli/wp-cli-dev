@@ -3,6 +3,29 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export SCRIPT_DIR
+
+# peek.php renders a live lane of output per parallel job. Its use is
+# optional: it degrades to a plain passthrough on platforms that cannot
+# support the display (e.g. Windows) and can be disabled with NO_PEEK=1.
+PEEK_PHP="${SCRIPT_DIR}/peek.php"
+export PEEK_PHP
+
+# Parallel jobs run behind the peek display, where an interactive prompt is
+# instantly overdrawn and would hang the run waiting for input nobody can
+# see. Git and ssh prompt on /dev/tty (not stdin), so disable prompting
+# entirely: failures then surface as visible errors in the job's lane.
+# - GIT_TERMINAL_PROMPT=0: no credential/username prompts from git itself.
+# - BatchMode=yes: ssh fails instead of asking for passphrases or host key
+#   confirmation (keys served by an ssh-agent keep working). Only set when
+#   GIT_SSH_COMMAND is not already customized.
+# - GIT_MERGE_AUTOEDIT=no: a non-fast-forward pull keeps the default merge
+#   message instead of opening an editor.
+export GIT_TERMINAL_PROMPT=0
+export GIT_MERGE_AUTOEDIT=no
+if [[ -z "${GIT_SSH_COMMAND:-}" ]]; then
+	export GIT_SSH_COMMAND="ssh -oBatchMode=yes"
+fi
 
 if ! command -v jq &>/dev/null; then
 	echo "Required command 'jq' is not installed or not available in PATH." >&2
@@ -80,8 +103,11 @@ get_destination() {
 	fi
 }
 
-CLONE_LIST=()
-UPDATE_FOLDERS=()
+# One task per repository: sync-repository.sh clones missing folders and
+# refreshes existing ones. Running a single parallel pass over all
+# repositories keeps all ${CORES} slots busy for the whole run, instead of
+# a clone stage and a refresh stage separated by a barrier.
+TASK_LIST=()
 
 while IFS=$'\t' read -r name clone_url ssh_url; do
 	if is_skipped "${name}"; then
@@ -90,21 +116,14 @@ while IFS=$'\t' read -r name clone_url ssh_url; do
 
 	destination=$(get_destination "${name}")
 
-	if [[ ! -d "${destination}" ]]; then
-		if [[ -n "${GITHUB_ACTION:-}" ]]; then
-			CLONE_LIST+=("${destination}"$'\t'"${clone_url}")
-		else
-			CLONE_LIST+=("${destination}"$'\t'"${ssh_url}")
-		fi
+	if [[ -n "${GITHUB_ACTION:-}" ]]; then
+		TASK_LIST+=("${destination}"$'\t'"${clone_url}")
+	else
+		TASK_LIST+=("${destination}"$'\t'"${ssh_url}")
 	fi
-
-	UPDATE_FOLDERS+=("${destination}")
 done < <(echo "${RESPONSE}" | jq -r '.[] | [.name, .clone_url, .ssh_url] | @tsv')
 
-if [[ ${#CLONE_LIST[@]} -gt 0 ]]; then
-	printf '%s\n' "${CLONE_LIST[@]}" | xargs -n2 -P"${CORES}" bash "${SCRIPT_DIR}/clone-repository.sh"
-fi
-
-if [[ ${#UPDATE_FOLDERS[@]} -gt 0 ]]; then
-	printf '%s\n' "${UPDATE_FOLDERS[@]}" | xargs -P"${CORES}" -I% php "${SCRIPT_DIR}/refresh-repository.php" %
+if [[ ${#TASK_LIST[@]} -gt 0 ]]; then
+	printf '%s\n' "${TASK_LIST[@]}" | php "${PEEK_PHP}" -- xargs -n2 -P"${CORES}" \
+		bash -c 'exec php "${PEEK_PHP}" run -n "$1" -- bash "${SCRIPT_DIR}/sync-repository.sh" "$1" "$2"' _
 fi
