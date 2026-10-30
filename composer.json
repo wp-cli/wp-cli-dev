@@ -312,7 +312,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "WP_CLI\\Maintenance\\": ".maintenance/src/"
+            "WP_CLI\\Maintenance\\": ".maintenance/src/",
+            "WP_CLI\\Maintenance\\Tests\\": "tests/includes/"
         },
         "files": [
             ".maintenance/bootstrap.php"
@@ -338,6 +339,7 @@
         "phpstan": "run-phpstan-tests",
         "phpunit": "run-php-unit-tests",
         "prepare-tests": "install-package-tests",
+        "update-github-fixtures": "php tests/fixtures/github/update.php",
         "test": [
             "@lint",
             "@phpcs",

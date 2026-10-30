@@ -1,0 +1,43 @@
+{
+    "request": "GET /repos/wp-cli/block-command/milestones/4",
+    "status": 200,
+    "headers": {},
+    "body": {
+        "url": "https://api.github.com/repos/wp-cli/block-command/milestones/4",
+        "html_url": "https://github.com/wp-cli/block-command/milestone/4",
+        "labels_url": "https://api.github.com/repos/wp-cli/block-command/milestones/4/labels",
+        "id": 17482346,
+        "node_id": "MI_kwDOQl0QSc4BCsJq",
+        "number": 4,
+        "title": "1.0.4",
+        "description": null,
+        "creator": {
+            "login": "swissspidy",
+            "id": 841956,
+            "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+            "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/swissspidy",
+            "html_url": "https://github.com/swissspidy",
+            "followers_url": "https://api.github.com/users/swissspidy/followers",
+            "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+            "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+            "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+            "repos_url": "https://api.github.com/users/swissspidy/repos",
+            "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+        },
+        "open_issues": 0,
+        "closed_issues": 2,
+        "state": "closed",
+        "created_at": "2026-08-26T07:42:22Z",
+        "updated_at": "2026-10-30T17:02:21Z",
+        "due_on": null,
+        "closed_at": "2026-10-30T17:02:21Z"
+    }
+}
