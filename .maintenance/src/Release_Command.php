@@ -1,5 +1,6 @@
 <?php namespace WP_CLI\Maintenance;
 
+use cli\Shell;
 use WP_CLI;
 use WP_CLI\Utils;
 
@@ -25,16 +26,7 @@ final class Release_Command {
 	 */
 	public function close_released( $args, $assoc_args ) {
 
-		$repos = (array) $args;
-
-		if ( Utils\get_flag_value( $assoc_args, 'all', false ) ) {
-			$repos = array_unique( array_merge( $repos, $this->get_all_repos() ) );
-		} elseif ( Utils\get_flag_value( $assoc_args, 'bundle', false ) ) {
-			$repos = array_unique( array_merge( $repos, $this->get_bundle_repos() ) );
-		}
-
-		foreach ( $repos as $repo ) {
-			$repo = GitHub::qualify_repo( $repo );
+		foreach ( $this->get_repos( $args, $assoc_args ) as $repo ) {
 
 			WP_CLI::log( "--- {$repo} ---" );
 
@@ -72,16 +64,7 @@ final class Release_Command {
 	 */
 	public function generate( $args, $assoc_args ) {
 
-		$repos = (array) $args;
-
-		if ( Utils\get_flag_value( $assoc_args, 'all', false ) ) {
-			$repos = array_unique( array_merge( $repos, $this->get_all_repos() ) );
-		} elseif ( Utils\get_flag_value( $assoc_args, 'bundle', false ) ) {
-			$repos = array_unique( array_merge( $repos, $this->get_bundle_repos() ) );
-		}
-
-		foreach ( $repos as $repo ) {
-			$repo = GitHub::qualify_repo( $repo );
+		foreach ( $this->get_repos( $args, $assoc_args ) as $repo ) {
 
 			WP_CLI::log( "--- {$repo} ---" );
 
@@ -136,6 +119,85 @@ final class Release_Command {
 		}
 	}
 
+	/**
+	 * Checks which repositories have unreleased changes, and whether their
+	 * milestones are ready to release them.
+	 *
+	 * Compares the default branch of each repository against its latest
+	 * version tag and looks at the pull requests merged since. A repository is
+	 * `up_to_date` when none of them calls for a release, `ready` when they
+	 * all sit on one open milestone that `release generate` can release, and
+	 * `needs_human` when a maintainer has to decide something first, such as
+	 * which milestone a pull request belongs to. The blockers say what.
+	 *
+	 * Routine pull requests by Dependabot or GitHub Actions only count when
+	 * they are on a milestone.
+	 *
+	 * Makes no changes.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [<repo>...]
+	 * : Name(s) of the repository to check. If no user/org was provided,
+	 * 'wp-cli' org is assumed.
+	 *
+	 * [--bundle]
+	 * : Check every package of the bundle.
+	 *
+	 * [--all]
+	 * : Check all repositories in the wp-cli organization.
+	 *
+	 * [--format=<format>]
+	 * : Render output in a specific format. Defaults to a table in a terminal
+	 * and to JSON otherwise. The JSON lists the unreleased pull requests and
+	 * the blockers of each repository as well.
+	 * ---
+	 * options:
+	 *   - table
+	 *   - json
+	 * ---
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     $ wp maintenance release plan cache-command db-command eval-command
+	 *     +----------------------+-------------+------------+---------+------------+
+	 *     | repo                 | status      | latest_tag | release | blockers   |
+	 *     +----------------------+-------------+------------+---------+------------+
+	 *     | wp-cli/cache-command | ready       | v3.0.0     | v3.0.1  |            |
+	 *     | wp-cli/db-command    | needs_human | v3.0.1     |         | open_items |
+	 *     | wp-cli/eval-command  | up_to_date  | v3.0.1     |         |            |
+	 *     +----------------------+-------------+------------+---------+------------+
+	 *
+	 * @when before_wp_load
+	 */
+	public function plan( $args, $assoc_args ) {
+		$format = Utils\get_flag_value( $assoc_args, 'format', Shell::isPiped() ? 'json' : 'table' );
+
+		$plans = array_map( [ Release_Plan::class, 'fetch' ], $this->get_repos( $args, $assoc_args ) );
+
+		if ( 'json' === $format ) {
+			WP_CLI::line( (string) json_encode( $plans, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
+			return;
+		}
+
+		Utils\format_items(
+			'table',
+			array_map(
+				static function ( $plan ) {
+					return [
+						'repo'       => $plan['repo'],
+						'status'     => $plan['status'],
+						'latest_tag' => $plan['latest_tag'],
+						'release'    => $plan['release'] ? $plan['release']['tag'] : '',
+						'blockers'   => implode( ', ', array_unique( array_column( $plan['blockers'], 'code' ) ) ),
+					];
+				},
+				$plans
+			),
+			[ 'repo', 'status', 'latest_tag', 'release', 'blockers' ]
+		);
+	}
+
 	private function has_open_items_on_milestone( $repo, $milestone ) {
 		return GitHub::get_issues(
 			$repo,
@@ -144,6 +206,26 @@ final class Release_Command {
 				'state'     => 'open',
 			]
 		);
+	}
+
+	/**
+	 * Gets the repositories a command applies to, fully qualified.
+	 *
+	 * @param string[] $args       Repositories passed by name.
+	 * @param array    $assoc_args `--bundle` and `--all` flags.
+	 *
+	 * @return string[]
+	 */
+	private function get_repos( $args, $assoc_args ) {
+		$repos = (array) $args;
+
+		if ( Utils\get_flag_value( $assoc_args, 'all', false ) ) {
+			$repos = array_merge( $repos, $this->get_all_repos() );
+		} elseif ( Utils\get_flag_value( $assoc_args, 'bundle', false ) ) {
+			$repos = array_merge( $repos, $this->get_bundle_repos() );
+		}
+
+		return array_values( array_unique( array_map( [ GitHub::class, 'qualify_repo' ], $repos ) ) );
 	}
 
 	private function get_all_repos() {

@@ -346,6 +346,78 @@ class GitHub {
 	}
 
 	/**
+	 * Gets the tags of a repository.
+	 *
+	 * @param string $project
+	 *
+	 * @return array
+	 */
+	public static function get_tags( $project ) {
+		return self::request_all( self::API_ROOT . "repos/{$project}/tags" );
+	}
+
+	/**
+	 * Gets the pull requests merged into a branch since a given tag.
+	 *
+	 * @param string $project
+	 * @param string $tag    Tag to compare the branch against.
+	 * @param string $branch Branch the pull requests were merged into.
+	 *
+	 * @return array Pull requests, most recently updated first.
+	 */
+	public static function get_pull_requests_merged_since( $project, $tag, $branch ) {
+		list( $comparison ) = self::request(
+			self::API_ROOT . "repos/{$project}/compare/" . rawurlencode( $tag ) . '...' . rawurlencode( $branch )
+		);
+
+		$commits = [];
+		foreach ( $comparison->commits as $commit ) {
+			$commits[ $commit->sha ] = true;
+		}
+
+		$tagged_at = $comparison->base_commit->commit->committer->date;
+
+		// The comparison lists at most 250 commits. Past that, the merge date
+		// alone has to tell which pull requests are unreleased.
+		$complete = count( $commits ) >= $comparison->total_commits;
+
+		$pull_requests = [];
+		$url           = self::API_ROOT . "repos/{$project}/pulls";
+		$args          = [
+			'state'     => 'closed',
+			'base'      => $branch,
+			'sort'      => 'updated',
+			'direction' => 'desc',
+			'per_page'  => 100,
+		];
+
+		// Pull requests are sorted by their last update, which is never older
+		// than their merge, so the listing can stop at the tag.
+		while ( $url ) {
+			list( $page, $headers ) = self::request( $url, $args );
+
+			foreach ( $page as $pull_request ) {
+				if ( $pull_request->updated_at < $tagged_at ) {
+					break 2;
+				}
+
+				if ( ! $pull_request->merged_at || $pull_request->merged_at < $tagged_at ) {
+					continue;
+				}
+
+				if ( ! $complete || isset( $commits[ $pull_request->merge_commit_sha ] ) ) {
+					$pull_requests[] = $pull_request;
+				}
+			}
+
+			$url  = self::get_next_page_url( isset( $headers['link'] ) ? $headers['link'] : '' );
+			$args = [];
+		}
+
+		return $pull_requests;
+	}
+
+	/**
 	 * Gets the default branch of a repository.
 	 *
 	 * @param string $project Project to get the default branch for.
