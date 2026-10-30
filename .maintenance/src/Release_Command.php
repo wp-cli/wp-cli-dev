@@ -58,6 +58,11 @@ final class Release_Command {
 	 * milestones that could be released, it is skipped unless --milestone says
 	 * which one, as they would all tag the same commit.
 	 *
+	 * It is also skipped unless `wp maintenance release plan` reports it as
+	 * ready for that milestone: the tag ships everything merged into the
+	 * default branch since the latest tag, so all of it has to belong to the
+	 * milestone, and all of the milestone's pull requests have to be in it.
+	 *
 	 * Run `wp maintenance release plan` first to see what is ready.
 	 *
 	 * ## OPTIONS
@@ -126,6 +131,10 @@ final class Release_Command {
 				continue;
 			}
 
+			if ( $candidates && ! $this->agrees_with_plan( $repo, $candidates ) ) {
+				continue;
+			}
+
 			foreach ( $candidates as $candidate ) {
 				list( $milestone, $notes ) = $candidate;
 
@@ -164,6 +173,52 @@ final class Release_Command {
 				GitHub::close_milestone( $repo, $milestone->number );
 			}
 		}
+	}
+
+	/**
+	 * Checks a milestone about to be released against the release plan of its
+	 * repository, which looks at what the default branch actually contains.
+	 *
+	 * The tag goes on the default branch, so it ships every change merged there
+	 * since the latest tag. Those changes must all belong to this milestone, and
+	 * every pull request in the release notes must be among them.
+	 *
+	 * @param string               $repo       Repository name, including the org.
+	 * @param array<string, array> $candidates The one milestone to release, see
+	 *                                         get_releasable_milestones().
+	 *
+	 * @return bool Whether the release can go ahead. Warns when it can't.
+	 */
+	private function agrees_with_plan( $repo, array $candidates ) {
+		$title = (string) key( $candidates );
+		$plan  = Release_Plan::fetch( $repo );
+
+		if ( Release_Plan::READY !== $plan['status'] ) {
+			WP_CLI::warning( "Skipping milestone '{$title}' as {$repo} needs a maintainer's decision first:" );
+			foreach ( $plan['blockers'] as $blocker ) {
+				WP_CLI::log( "  - {$blocker['message']}" );
+			}
+			return false;
+		}
+
+		if ( $plan['release']['milestone'] !== $title ) {
+			WP_CLI::warning( "Skipping milestone '{$title}' as the changes on the default branch belong to milestone '{$plan['release']['milestone']}'." );
+			return false;
+		}
+
+		$on_branch = array_column( $plan['pull_requests'], 'number' );
+		$in_notes  = array_column( $candidates[ $title ][1]['milestones'][0]['pull_requests'], 'number' );
+		$missing   = array_diff( $in_notes, $on_branch );
+
+		if ( $missing ) {
+			WP_CLI::warning(
+				"Skipping milestone '{$title}' as #" . implode( ', #', $missing )
+				. " was not merged into the default branch since {$plan['latest_tag']}, so the release would not contain it."
+			);
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

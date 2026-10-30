@@ -44,45 +44,49 @@ if ( '' === $token ) {
 	exit( 1 );
 }
 
+/**
+ * Statuses the recordings must have. Anything else, such as an expired token,
+ * leaves the existing fixture untouched.
+ */
+const EXPECTED_STATUSES = [ 'release-absent' => 404 ];
+
 foreach ( FIXTURES as $name => $path ) {
-	$context = stream_context_create(
+	$headers = [];
+	$curl    = curl_init( "https://api.github.com/{$path}" );
+	curl_setopt_array(
+		$curl,
 		[
-			'http' => [
-				'header'        => implode(
-					"\r\n",
-					[
-						'Accept: application/vnd.github+json',
-						"Authorization: Bearer {$token}",
-						'User-Agent: wp-cli-dev test fixtures',
-						'X-GitHub-Api-Version: 2022-11-28',
-					]
-				),
-				'ignore_errors' => true,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_HTTPHEADER     => [
+				'Accept: application/vnd.github+json',
+				"Authorization: Bearer {$token}",
+				'User-Agent: wp-cli-dev test fixtures',
+				'X-GitHub-Api-Version: 2022-11-28',
 			],
+			CURLOPT_HEADERFUNCTION => static function ( $curl, $line ) use ( &$headers ) {
+				$parts = explode( ':', $line, 2 );
+				if ( 2 === count( $parts ) && in_array( strtolower( trim( $parts[0] ) ), KEPT_HEADERS, true ) ) {
+					$headers[ strtolower( trim( $parts[0] ) ) ] = trim( $parts[1] );
+				}
+				return strlen( $line );
+			},
 		]
 	);
 
-	$body = file_get_contents( "https://api.github.com/{$path}", false, $context );
+	$body   = curl_exec( $curl );
+	$status = (int) curl_getinfo( $curl, CURLINFO_RESPONSE_CODE );
+	$error  = curl_error( $curl );
 
-	// Set by file_get_contents() for HTTP requests.
-	$response_headers = isset( $http_response_header ) ? $http_response_header : [];
+	$expected = array_key_exists( $name, EXPECTED_STATUSES ) ? EXPECTED_STATUSES[ $name ] : 200;
 
-	if ( false === $body || ! $response_headers || ! preg_match( '#^HTTP/\S+ (\d+)#', $response_headers[0], $matches ) ) {
-		fwrite( STDERR, "Could not fetch {$path}.\n" );
+	if ( ! is_string( $body ) || $expected !== $status ) {
+		fwrite( STDERR, "Could not record {$name}.json: GET /{$path} returned " . ( $status ?: $error ) . " instead of {$expected}. The fixture is unchanged.\n" );
 		exit( 1 );
-	}
-
-	$headers = [];
-	foreach ( array_slice( $response_headers, 1 ) as $header ) {
-		list( $key, $value ) = array_map( 'trim', explode( ':', $header, 2 ) + [ 1 => '' ] );
-		if ( in_array( strtolower( $key ), KEPT_HEADERS, true ) ) {
-			$headers[ strtolower( $key ) ] = $value;
-		}
 	}
 
 	$fixture = [
 		'request' => "GET /{$path}",
-		'status'  => (int) $matches[1],
+		'status'  => $status,
 		'headers' => (object) $headers,
 		'body'    => json_decode( $body ),
 	];
@@ -92,5 +96,5 @@ foreach ( FIXTURES as $name => $path ) {
 		json_encode( $fixture, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "\n"
 	);
 
-	echo "Recorded {$name}.json ({$fixture['status']})\n";
+	echo "Recorded {$name}.json ({$status})\n";
 }
