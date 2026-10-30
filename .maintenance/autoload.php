@@ -12,8 +12,10 @@
  * precedence and silently run the other checkout's, possibly older, code.
  */
 
-foreach ( glob( __DIR__ . '/src/*.php' ) as $maintenance_class_file ) {
-	require_once $maintenance_class_file;
+foreach ( (array) scandir( __DIR__ . '/src' ) as $maintenance_class_file ) {
+	if ( '.php' === substr( (string) $maintenance_class_file, -4 ) ) {
+		require_once __DIR__ . '/src/' . $maintenance_class_file;
+	}
 }
 
 require_once __DIR__ . '/bootstrap.php';
