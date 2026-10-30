@@ -40,8 +40,10 @@ elif [[ -z "${CLONE_JOBS:-}" && -z "${WPCLI_DEV_JOBS:-}" && "${CORES}" -gt "${MA
 fi
 
 # Lists the repositories of the organization as "name<TAB>clone_url<TAB>ssh_url"
-# lines. Uses the GitHub CLI when it is logged in, and the GitHub API with
-# GH_TOKEN or GITHUB_TOKEN, or anonymously, otherwise.
+# lines. Uses the GitHub CLI when it is logged in, and the GitHub API
+# otherwise, with GH_TOKEN, GITHUB_TOKEN or Composer's GitHub token. On CI,
+# setup-php hands the job token to Composer, and the anonymous rate limit is
+# shared with every other job on the same runner address.
 fetch_repositories() {
 	if command -v gh &>/dev/null && gh auth status --hostname github.com &>/dev/null; then
 		gh api --paginate 'orgs/wp-cli/repos?per_page=100' --jq '.[] | [.name, .clone_url, .ssh_url] | @tsv'
@@ -50,6 +52,9 @@ fetch_repositories() {
 
 	local curl_opts=(-sS)
 	local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+	if [[ -z "${token}" ]] && command -v composer &>/dev/null; then
+		token=$(composer config --global github-oauth.github.com 2>/dev/null || true)
+	fi
 	if [[ -n "${token}" ]]; then
 		curl_opts+=(--header "Authorization: Bearer ${token}")
 	fi
