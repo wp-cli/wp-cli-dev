@@ -39,29 +39,60 @@ elif [[ -z "${CLONE_JOBS:-}" && -z "${WPCLI_DEV_JOBS:-}" && "${CORES}" -gt "${MA
 	CORES=${MAX_CORES}
 fi
 
-# Fetch repository list from the GitHub API.
-CURL_OPTS=(-fsS)
-if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-	CURL_OPTS+=(--header "Authorization: Bearer ${GITHUB_TOKEN}")
-fi
-
-if ! RESPONSE=$(curl "${CURL_OPTS[@]}" 'https://api.github.com/orgs/wp-cli/repos?per_page=100'); then
-	echo "Failed to fetch repository list from the GitHub API." >&2
-	exit 1
-fi
-
-# Validate the response shape and detect API errors such as rate limiting.
-if ! jq -e 'type == "array"' >/dev/null <<< "${RESPONSE}"; then
-	if jq -e '.message' >/dev/null <<< "${RESPONSE}"; then
-		MESSAGE=$(jq -r '.message' <<< "${RESPONSE}")
-		echo "GitHub responded with: ${MESSAGE}" >&2
-		echo "If you are running into a rate limiting issue during large events please set GITHUB_TOKEN environment variable." >&2
-		echo "See https://github.com/settings/tokens" >&2
-	else
-		echo "GitHub API returned an unexpected response; expected a JSON array of repositories." >&2
+# Lists the repositories of the organization as "name<TAB>clone_url<TAB>ssh_url"
+# lines. Uses the GitHub CLI when it is logged in, and the GitHub API with
+# GH_TOKEN or GITHUB_TOKEN, or anonymously, otherwise.
+fetch_repositories() {
+	if command -v gh &>/dev/null && gh auth status --hostname github.com &>/dev/null; then
+		gh api --paginate 'orgs/wp-cli/repos?per_page=100' --jq '.[] | [.name, .clone_url, .ssh_url] | @tsv'
+		return
 	fi
-	exit 1
+
+	local curl_opts=(-sS)
+	local token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+	if [[ -n "${token}" ]]; then
+		curl_opts+=(--header "Authorization: Bearer ${token}")
+	fi
+
+	local page=1 response message
+	while true; do
+		if ! response=$(curl "${curl_opts[@]}" "https://api.github.com/orgs/wp-cli/repos?per_page=100&page=${page}"); then
+			echo "Failed to fetch repository list from the GitHub API." >&2
+			return 1
+		fi
+
+		# Validate the response shape and detect API errors such as rate limiting.
+		if ! jq -e 'type == "array"' >/dev/null <<< "${response}"; then
+			if jq -e '.message' >/dev/null 2>&1 <<< "${response}"; then
+				message=$(jq -r '.message' <<< "${response}")
+				echo "GitHub responded with: ${message}" >&2
+				echo "If you are running into a rate limiting issue, log in with 'gh auth login' or set the GITHUB_TOKEN environment variable." >&2
+			else
+				echo "GitHub API returned an unexpected response; expected a JSON array of repositories." >&2
+			fi
+			return 1
+		fi
+
+		if [[ $(jq 'length' <<< "${response}") -eq 0 ]]; then
+			return
+		fi
+
+		jq -r '.[] | [.name, .clone_url, .ssh_url] | @tsv' <<< "${response}"
+		page=$((page + 1))
+	done
+}
+
+# Clone over the protocol the GitHub CLI is set up for, as its credential helper
+# then covers pushing. Without it, use HTTPS on CI and SSH everywhere else.
+if [[ -n "${GITHUB_ACTION:-}" ]]; then
+	PROTOCOL="https"
+elif command -v gh &>/dev/null && gh auth status --hostname github.com &>/dev/null; then
+	PROTOCOL=$(gh config get git_protocol --host github.com 2>/dev/null || echo "https")
+else
+	PROTOCOL="ssh"
 fi
+
+REPOSITORIES=$(fetch_repositories)
 
 is_skipped() {
 	local name="$1"
@@ -84,6 +115,10 @@ CLONE_LIST=()
 UPDATE_FOLDERS=()
 
 while IFS=$'\t' read -r name clone_url ssh_url; do
+	if [[ -z "${name}" ]]; then
+		continue
+	fi
+
 	if is_skipped "${name}"; then
 		continue
 	fi
@@ -91,15 +126,15 @@ while IFS=$'\t' read -r name clone_url ssh_url; do
 	destination=$(get_destination "${name}")
 
 	if [[ ! -d "${destination}" ]]; then
-		if [[ -n "${GITHUB_ACTION:-}" ]]; then
-			CLONE_LIST+=("${destination}"$'\t'"${clone_url}")
-		else
+		if [[ "${PROTOCOL}" == "ssh" ]]; then
 			CLONE_LIST+=("${destination}"$'\t'"${ssh_url}")
+		else
+			CLONE_LIST+=("${destination}"$'\t'"${clone_url}")
 		fi
 	fi
 
 	UPDATE_FOLDERS+=("${destination}")
-done < <(echo "${RESPONSE}" | jq -r '.[] | [.name, .clone_url, .ssh_url] | @tsv')
+done <<< "${REPOSITORIES}"
 
 if [[ ${#CLONE_LIST[@]} -gt 0 ]]; then
 	printf '%s\n' "${CLONE_LIST[@]}" | xargs -n2 -P"${CORES}" bash "${SCRIPT_DIR}/clone-repository.sh"

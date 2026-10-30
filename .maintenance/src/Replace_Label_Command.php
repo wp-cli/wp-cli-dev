@@ -14,7 +14,7 @@ final class Replace_Label_Command {
 	 * : Name of the repository you want to replace a label for.
 	 *
 	 * <old-label>
-	 * : Old label to replace on all issues.
+	 * : Old label to replace on all issues and pull requests, open or closed.
 	 *
 	 * <new-label>
 	 * : New label to replace it with.
@@ -28,13 +28,13 @@ final class Replace_Label_Command {
 
 		list( $repo, $old_label, $new_label ) = $args;
 
-		if ( false === strpos( $repo, '/' ) ) {
-			$repo = "wp-cli/{$repo}";
-		}
+		$repo = GitHub::qualify_repo( $repo );
 
 		$delete = WP_CLI\Utils\get_flag_value( $assoc_args, 'delete', false );
 
-		foreach ( GitHub::get_issues_by_label( $repo, $old_label ) as $issue ) {
+		$issues = GitHub::get_issues_by_label( $repo, $old_label );
+
+		foreach ( $issues as $issue ) {
 			GitHub::remove_label( $repo, $issue->number, $old_label );
 			GitHub::add_label( $repo, $issue->number, $new_label );
 		}
@@ -43,6 +43,6 @@ final class Replace_Label_Command {
 			GitHub::delete_label( $repo, $old_label );
 		}
 
-		WP_CLI::success( "Label '{$old_label}' was replaced with '{$new_label}' in the '{$repo}' repository." );
+		WP_CLI::success( sprintf( "Label '%s' was replaced with '%s' on %d issue(s) in the '%s' repository.", $old_label, $new_label, count( $issues ), $repo ) );
 	}
 }

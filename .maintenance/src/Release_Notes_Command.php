@@ -39,6 +39,7 @@ final class Release_Notes_Command {
 	 * options:
 	 *   - release
 	 *   - pull-request
+	 * ---
 	 *
 	 * [--format=<format>]
 	 * : Render output in a specific format.
@@ -47,6 +48,7 @@ final class Release_Notes_Command {
 	 * options:
 	 *   - markdown
 	 *   - html
+	 *   - json
 	 * ---
 	 *
 	 * @when before_wp_load
@@ -56,7 +58,7 @@ final class Release_Notes_Command {
 		$repo = null;
 
 		if ( count( $args ) > 0 ) {
-			$repo = array_shift( $args );
+			$repo = GitHub::qualify_repo( array_shift( $args ) );
 		}
 
 		$milestone_names = $args;
@@ -66,21 +68,21 @@ final class Release_Notes_Command {
 		$release    = Utils\get_flag_value( $assoc_args, 'release' );
 		$bundle_ref = Utils\get_flag_value( $assoc_args, 'bundle-ref' );
 
-		if ( $repo ) {
-			$this->get_repo_release_notes(
-				$repo,
-				$milestone_names,
-				$source,
-				$format
-			);
+		$sections = $repo
+			? [ $this->get_repo_release_notes( $repo, $milestone_names, $source ) ]
+			: $this->get_bundle_release_notes( $source, $release, $bundle_ref );
 
+		if ( 'json' === $format ) {
+			WP_CLI::line( (string) json_encode( $sections, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) );
 			return;
 		}
 
-		$this->get_bundle_release_notes( $source, $format, $release, $bundle_ref );
+		WP_CLI::line( Release_Notes::render( $sections, $format, null === $repo ) );
 	}
 
-	private function get_bundle_release_notes( $source, $format, $release, $bundle_ref ) {
+	private function get_bundle_release_notes( $source, $release, $bundle_ref ) {
+		$sections = [];
+
 		// Get the release notes for the milestones of the release repositories.
 		foreach ( Bundle::RELEASE_REPOS as $repo ) {
 			$milestone = Bundle::get_release_milestone( $repo, $release );
@@ -90,16 +92,7 @@ final class Release_Notes_Command {
 				continue;
 			}
 
-			WP_CLI::debug( "Using milestone '{$milestone->title}' for repo '{$repo}'", 'release-notes' );
-
-			WP_CLI::log( $this->repo_heading( $repo, $format ) );
-
-			$this->get_repo_release_notes(
-				$repo,
-				$milestone->title,
-				$source,
-				$format
-			);
+			$sections[] = Release_Notes::get( $repo, [ $milestone ], $source );
 		}
 
 		// Identify all command dependencies and their release notes
@@ -121,141 +114,23 @@ final class Release_Notes_Command {
 				continue;
 			}
 
-			WP_CLI::log( $this->repo_heading( $package_name, $format ) );
-
-			foreach ( $milestones as $milestone ) {
-				$this->get_repo_release_notes(
-					$package_name,
-					$milestone->title,
-					$source,
-					$format
-				);
-			}
+			$sections[] = Release_Notes::get( $package_name, $milestones, $source );
 		}
+
+		return $sections;
 	}
 
-	private function get_repo_release_notes(
-		$repo,
-		$milestone_names,
-		$source,
-		$format
-	) {
-		if ( false === strpos( $repo, '/' ) ) {
-			$repo = "wp-cli/{$repo}";
+	private function get_repo_release_notes( $repo, $milestone_names, $source ) {
+		if ( $milestone_names ) {
+			return Release_Notes::get( $repo, Release_Notes::find_milestones( $repo, $milestone_names ), $source );
 		}
 
-		$milestone_names = (array) $milestone_names;
+		$milestone = Bundle::get_release_milestone( $repo );
 
-		$potential_milestones = GitHub::get_project_milestones(
-			$repo,
-			array( 'state' => 'all' )
-		);
-
-		$milestones = array();
-		foreach ( $potential_milestones as $potential_milestone ) {
-			if ( in_array(
-				$potential_milestone->title,
-				$milestone_names,
-				true
-			) ) {
-				$milestones[] = $potential_milestone;
-				$index        = array_search(
-					$potential_milestone->title,
-					$milestone_names,
-					true
-				);
-				unset( $milestone_names[ $index ] );
-			}
+		if ( ! $milestone ) {
+			WP_CLI::error( "Repository '{$repo}' has no open milestone. Pass the milestone(s) to fetch the release notes for." );
 		}
 
-		if ( ! empty( $milestone_names ) ) {
-			WP_CLI::warning(
-				sprintf(
-					"Couldn't find the requested milestone(s) '%s' in repository '%s'.",
-					implode( "', '", $milestone_names ),
-					$repo
-				)
-			);
-		}
-
-		$entries = array();
-		foreach ( $milestones as $milestone ) {
-
-			WP_CLI::debug( "Using milestone '{$milestone->title}' for repo '{$repo}'", 'release-notes' );
-
-			switch ( $source ) {
-				case 'release':
-					$tag = 0 === strpos( $milestone->title, 'v' )
-						? $milestone->title
-						: "v{$milestone->title}";
-
-					$release = GitHub::get_release_by_tag(
-						$repo,
-						$tag,
-						array( 'throw_errors' => false )
-					);
-
-					if ( $release ) {
-						WP_CLI::log( $release->body );
-						break;
-					}
-
-					WP_CLI::warning( "Release notes not found for {$repo}@{$tag}, falling back to pull-request source" );
-					// Intentionally falling through.
-				case 'pull-request':
-					$pull_requests = GitHub::get_project_milestone_pull_requests(
-						$repo,
-						$milestone->number
-					);
-
-					foreach ( $pull_requests as $pull_request ) {
-						$entries[] = $this->get_pull_request_reference(
-							$pull_request,
-							$format
-						);
-					}
-					break;
-				default:
-					WP_CLI::error( "Unknown --source: {$source}" );
-			}
-		}
-
-		$template = 'html' === $format ? '<ul>%s</ul>' : '%s';
-
-		WP_CLI::log( sprintf( $template, implode( '', $entries ) ) );
-	}
-
-	private function get_pull_request_reference(
-		$pull_request,
-		$format
-	) {
-		$template = 'html' === $format ?
-			'<li>%1$s [<a href="%3$s">#%2$d</a>]</li>' :
-			'- %1$s [[#%2$d](%3$s)]' . PHP_EOL;
-
-		return sprintf(
-			$template,
-			$this->format_title( $pull_request->title, $format ),
-			$pull_request->number,
-			$pull_request->html_url
-		);
-	}
-
-	private function format_title( $title, $format ) {
-		if ( 'html' === $format ) {
-			$title = preg_replace( '/`(.*?)`/', '<code>$1</code>', $title );
-		}
-
-		return trim( $title );
-	}
-
-	private function repo_heading( $repo, $format ) {
-		return sprintf(
-			'html' === $format
-				? '<h4><a href="%2$s">%1$s</a></h4>' . PHP_EOL
-				: '#### [%1$s](%2$s)' . PHP_EOL,
-			$repo,
-			"https://github.com/{$repo}/"
-		);
+		return Release_Notes::get( $repo, [ $milestone ], $source );
 	}
 }

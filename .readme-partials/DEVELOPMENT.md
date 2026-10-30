@@ -8,3 +8,7 @@ gh repo fork
 ```
 
 As the folders are also symlinked into the Composer `vendor` folder, you will always have the latest changes available when running WP-CLI through the `vendor/bin/wp` executable.
+
+Running `composer install` or `composer update` also fetches every clone and fast-forwards the ones that are clean and on their default branch. Clones with uncommitted changes or on another branch are only fetched, so work in progress is never switched away from.
+
+The `wp maintenance` commands don't need the full environment: any `wp` executable picks them up through `wp-cli.yml` when run from this folder. They authenticate with the GitHub CLI when it is logged in, and with the `GH_TOKEN` or `GITHUB_TOKEN` environment variable otherwise. Run `wp maintenance doctor` to check the setup.

@@ -1,2 +1,2 @@
 require:
-  - vendor/autoload.php
+  - .maintenance/autoload.php

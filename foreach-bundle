@@ -1,24 +1,46 @@
 #!/usr/bin/env bash
 #
-# Execute a command in each subfolder.
+# Runs a shell command in the folder of every bundled package, for example:
 #
+#   ./foreach-bundle git status
+#   ./foreach-bundle 'git pull && composer update'
+#
+# Keeps going when the command fails in a folder, and exits with an error code
+# when it failed in any of them.
+#
+
+set -euo pipefail
+
+if [[ $# -eq 0 ]]; then
+	echo "Usage: foreach-bundle <command>" >&2
+	exit 1
+fi
+
+COMMAND="$*"
 
 get_bundle_dependencies()
 {
 	echo "wp-cli/wp-cli-bundle"
-	curl --silent "https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/main/composer.json" \
+	curl -fsS "https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/main/composer.json" \
 		| jq --raw-output '."require" | keys[] | select(startswith("wp-cli/"))'
 }
 
+DEPENDENCIES=$(get_bundle_dependencies)
+FAILED=()
+
 while read -r dependency; do
-	# Remove wp-cli/ prefix
-    repo_path="${dependency:7}"
-    if [ ! -d "${repo_path}" ]; then
+	repo_path="${dependency#wp-cli/}"
+	if [[ ! -d "${repo_path}" ]]; then
 		continue
 	fi
 
 	echo "--- ${repo_path}: ---"
-	cd "${repo_path}"
-	bash -c "$@"
-	cd -
-done <<< "$(get_bundle_dependencies)"
+	if ! ( cd "${repo_path}" && bash -c "${COMMAND}" ); then
+		FAILED+=("${repo_path}")
+	fi
+done <<< "${DEPENDENCIES}"
+
+if [[ ${#FAILED[@]} -gt 0 ]]; then
+	echo "The command failed in: ${FAILED[*]}" >&2
+	exit 1
+fi
