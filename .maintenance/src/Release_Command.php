@@ -188,7 +188,6 @@ final class Release_Command {
 			},
 			GitHub::get_tags( $repo )
 		);
-		$latest   = Release_Plan::latest_version_tag( $tags );
 
 		$milestones = GitHub::get_project_milestones( $repo );
 
@@ -207,23 +206,22 @@ final class Release_Command {
 
 		$candidates = [];
 		foreach ( $milestones as $milestone ) {
-			$version = ltrim( $milestone->title, 'v' );
-
 			WP_CLI::log( "Checking milestone '{$milestone->title}'..." );
 
-			if ( Release_Plan::has_tag( $releases, $version ) ) {
+			$tag_status = Release_Plan::get_tag_status( $milestone->title, $releases, $tags );
+
+			if ( Release_Plan::RELEASED === $tag_status ) {
 				WP_CLI::log( "Found a matching release, skipping milestone '{$milestone->title}'..." );
 				continue;
 			}
 
-			if ( Release_Plan::has_tag( $tags, $version ) ) {
+			if ( Release_Plan::TAGGED === $tag_status ) {
 				WP_CLI::warning( "Skipping milestone '{$milestone->title}' as it was already tagged. Its pull requests need a new milestone." );
 				continue;
 			}
 
-			if ( ! Bundle::is_version( $version )
-				|| ( null !== $latest && ! version_compare( $version, ltrim( $latest, 'v' ), '>' ) ) ) {
-				WP_CLI::warning( "Skipping milestone '{$milestone->title}' as it is not a version newer than {$latest}." );
+			if ( Release_Plan::NOT_NEWER === $tag_status ) {
+				WP_CLI::warning( "Skipping milestone '{$milestone->title}' as it is not a version newer than the latest tag." );
 				continue;
 			}
 
