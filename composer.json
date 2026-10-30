@@ -287,6 +287,7 @@
             "maintenance release",
             "maintenance release close-released",
             "maintenance release generate",
+        "maintenance release plan",
             "maintenance release-date",
             "maintenance release-notes",
             "maintenance replace-label"
