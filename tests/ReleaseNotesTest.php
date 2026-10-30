@@ -58,7 +58,7 @@ class ReleaseNotesTest extends TestCase {
 			"#### [wp-cli/wp-cli](https://github.com/wp-cli/wp-cli/)\n\n"
 			. "- Release body\n"
 			. "#### [wp-cli/entity-command](https://github.com/wp-cli/entity-command/)\n\n"
-			. "- Fix `wp post list` [[#12](https://github.com/wp-cli/entity-command/pull/12)]\n"
+			. "- Fix `wp post list` [[#12](https://github.com/wp-cli/entity-command/pull/12)]\n\n"
 			. "- Add `wp icon` [[#15](https://github.com/wp-cli/entity-command/pull/15)]\n",
 			Release_Notes::render( $this->sections(), 'markdown', true )
 		);
@@ -67,8 +67,8 @@ class ReleaseNotesTest extends TestCase {
 	public function test_render_html_without_headings(): void {
 		$this->assertSame(
 			"- Release body\n"
-			. '<ul><li>Fix <code>wp post list</code> [<a href="https://github.com/wp-cli/entity-command/pull/12">#12</a>]</li>'
-			. '<li>Add <code>wp icon</code> [<a href="https://github.com/wp-cli/entity-command/pull/15">#15</a>]</li></ul>',
+			. '<ul><li>Fix <code>wp post list</code> [<a href="https://github.com/wp-cli/entity-command/pull/12">#12</a>]</li></ul>' . "\n"
+			. '<ul><li>Add <code>wp icon</code> [<a href="https://github.com/wp-cli/entity-command/pull/15">#15</a>]</li></ul>',
 			Release_Notes::render( $this->sections(), 'html', false )
 		);
 	}
@@ -89,5 +89,39 @@ class ReleaseNotesTest extends TestCase {
 		];
 
 		$this->assertSame( '', Release_Notes::render( $sections, 'html', false ) );
+	}
+
+	public function test_render_keeps_the_milestone_order_when_sources_mix(): void {
+		$sections = [
+			[
+				'repo'       => 'wp-cli/entity-command',
+				'milestones' => [
+					[
+						'milestone'     => '3.0.2',
+						'source'        => 'pull-request',
+						'body'          => null,
+						'pull_requests' => [
+							[
+								'title'  => 'From the pull requests',
+								'number' => 12,
+								'url'    => 'https://github.com/wp-cli/entity-command/pull/12',
+							],
+						],
+					],
+					[
+						'milestone'     => '3.0.3',
+						'source'        => 'release',
+						'body'          => '- From the release',
+						'pull_requests' => [],
+					],
+				],
+			],
+		];
+
+		$this->assertSame(
+			"- From the pull requests [[#12](https://github.com/wp-cli/entity-command/pull/12)]\n\n"
+			. '- From the release',
+			Release_Notes::render( $sections, 'markdown', false )
+		);
 	}
 }

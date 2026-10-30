@@ -191,4 +191,9 @@ class BundleTest extends TestCase {
 			$this->titles( Bundle::filter_shipped_milestones( $milestones, '2.1.0', '2.1.3' ) )
 		);
 	}
+
+	public function test_get_repo_maps_packages_to_their_repository(): void {
+		$this->assertSame( 'wp-cli/spyc', Bundle::get_repo( 'wp-cli/mustangostang-spyc' ) );
+		$this->assertSame( 'wp-cli/cache-command', Bundle::get_repo( 'wp-cli/cache-command' ) );
+	}
 }

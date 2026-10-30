@@ -116,7 +116,7 @@ final class Contrib_List_Command {
 				WP_CLI::debug( "Closed {$package_name} milestone(s): " . implode( ', ', $milestone_titles ), 'contrib-list' );
 
 				foreach ( $milestones as $milestone ) {
-					$pull_requests     = GitHub::get_project_milestone_pull_requests( $package_name, $milestone->number );
+					$pull_requests     = GitHub::get_project_milestone_pull_requests( Bundle::get_repo( $package_name ), $milestone->number );
 					$repo_contributors = GitHub::parse_contributors_from_pull_requests( $pull_requests );
 					WP_CLI::debug( count( $repo_contributors ) . ' contributors, ' . count( $pull_requests ) . " pull requests in '{$package_name}' milestone '{$milestone->title}'", 'contrib-list' );
 					$pull_request_count += count( $pull_requests );

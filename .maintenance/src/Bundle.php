@@ -33,6 +33,24 @@ final class Bundle {
 	];
 
 	/**
+	 * Bundled packages whose GitHub repository is named differently.
+	 */
+	const PACKAGE_REPOS = [
+		'wp-cli/mustangostang-spyc' => 'wp-cli/spyc',
+	];
+
+	/**
+	 * Gets the GitHub repository a bundled package is developed in.
+	 *
+	 * @param string $package Package name.
+	 *
+	 * @return string
+	 */
+	public static function get_repo( $package ) {
+		return isset( self::PACKAGE_REPOS[ $package ] ) ? self::PACKAGE_REPOS[ $package ] : $package;
+	}
+
+	/**
 	 * Gets the milestone of a release repository that belongs to a bundle
 	 * release: the one titled after the release, or the lowest open one when
 	 * no release is given.
@@ -231,7 +249,7 @@ final class Bundle {
 	 */
 	public static function get_shipped_milestones( $package, $previous_version, $current_version ) {
 		return self::filter_shipped_milestones(
-			GitHub::get_project_milestones( $package, [ 'state' => 'closed' ] ),
+			GitHub::get_project_milestones( self::get_repo( $package ), [ 'state' => 'closed' ] ),
 			$previous_version,
 			$current_version
 		);

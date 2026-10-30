@@ -135,4 +135,28 @@ class GitHubTest extends TestCase {
 			GitHub::parse_contributors_from_pull_requests( $pull_requests )
 		);
 	}
+
+	public function test_filter_merged_pull_requests_drops_issues_and_unmerged_pull_requests(): void {
+		$issues = [
+			(object) [ 'number' => 1 ],
+			(object) [
+				'number'       => 2,
+				'pull_request' => (object) [ 'merged_at' => null ],
+			],
+			(object) [
+				'number'       => 3,
+				'pull_request' => (object) [ 'merged_at' => '2026-10-29T04:55:23Z' ],
+			],
+		];
+
+		$this->assertSame(
+			[ 3 ],
+			array_map(
+				static function ( $issue ) {
+					return $issue->number;
+				},
+				GitHub::filter_merged_pull_requests( $issues )
+			)
+		);
+	}
 }

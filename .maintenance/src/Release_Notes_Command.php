@@ -114,7 +114,7 @@ final class Release_Notes_Command {
 				continue;
 			}
 
-			$sections[] = Release_Notes::get( $package_name, $milestones, $source );
+			$sections[] = Release_Notes::get( Bundle::get_repo( $package_name ), $milestones, $source );
 		}
 
 		return $sections;

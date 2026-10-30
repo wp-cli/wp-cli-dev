@@ -270,9 +270,22 @@ class GitHub {
 	 * @return array
 	 */
 	public static function get_project_milestone_pull_requests( $project, $milestone_id ) {
+		return self::filter_merged_pull_requests(
+			self::get_issues( $project, [ 'milestone' => $milestone_id ] )
+		);
+	}
+
+	/**
+	 * Keeps the merged pull requests out of a list of issues.
+	 *
+	 * @param object[] $issues Issues as returned by the issues API.
+	 *
+	 * @return object[]
+	 */
+	public static function filter_merged_pull_requests( array $issues ) {
 		return array_values(
 			array_filter(
-				self::get_issues( $project, [ 'milestone' => $milestone_id ] ),
+				$issues,
 				static function ( $issue ) {
 					return ! empty( $issue->pull_request->merged_at );
 				}

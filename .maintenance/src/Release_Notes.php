@@ -142,12 +142,17 @@ final class Release_Notes {
 				);
 			}
 
-			$entries = [];
 			foreach ( $section['milestones'] as $notes ) {
 				if ( null !== $notes['body'] ) {
 					$lines[] = $notes['body'];
+					continue;
 				}
 
+				if ( ! $notes['pull_requests'] ) {
+					continue;
+				}
+
+				$entries = [];
 				foreach ( $notes['pull_requests'] as $pull_request ) {
 					$entries[] = sprintf(
 						$html ? '<li>%1$s [<a href="%3$s">#%2$d</a>]</li>' : '- %1$s [[#%2$d](%3$s)]',
@@ -156,9 +161,7 @@ final class Release_Notes {
 						$pull_request['url']
 					);
 				}
-			}
 
-			if ( $entries ) {
 				$lines[] = $html
 					? '<ul>' . implode( '', $entries ) . '</ul>'
 					: implode( PHP_EOL, $entries ) . PHP_EOL;

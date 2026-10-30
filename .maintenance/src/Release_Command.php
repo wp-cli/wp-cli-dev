@@ -163,6 +163,9 @@ final class Release_Command {
 	private function get_bundle_repos() {
 		$default_branch = GitHub::get_default_branch( Bundle::REPO );
 
-		return array_keys( Bundle::get_packages( Bundle::get_lock( $default_branch ) ) );
+		return array_map(
+			[ Bundle::class, 'get_repo' ],
+			array_keys( Bundle::get_packages( Bundle::get_lock( $default_branch ) ) )
+		);
 	}
 }

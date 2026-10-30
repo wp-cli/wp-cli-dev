@@ -77,7 +77,10 @@ fetch_repositories() {
 			return
 		fi
 
-		jq -r '.[] | [.name, .clone_url, .ssh_url] | @tsv' <<< "${response}"
+		if ! jq -r '.[] | [.name, .clone_url, .ssh_url] | @tsv' <<< "${response}"; then
+			echo "GitHub API returned repositories in an unexpected format." >&2
+			return 1
+		fi
 		page=$((page + 1))
 	done
 }

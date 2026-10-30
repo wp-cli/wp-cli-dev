@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #
-# Runs a shell command in the folder of every bundled package, for example:
+# Runs a command in the folder of every bundled package. Several arguments are
+# run as they are; a single argument is run as a shell command line:
 #
-#   ./foreach-bundle git status
+#   ./foreach-bundle git commit -m "Fix the build"
 #   ./foreach-bundle 'git pull && composer update'
 #
 # Keeps going when the command fails in a folder, and exits with an error code
@@ -16,14 +17,18 @@ if [[ $# -eq 0 ]]; then
 	exit 1
 fi
 
-COMMAND="$*"
-
 get_bundle_dependencies()
 {
 	echo "wp-cli/wp-cli-bundle"
 	curl -fsS "https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/main/composer.json" \
 		| jq --raw-output '."require" | keys[] | select(startswith("wp-cli/"))'
 }
+
+if [[ $# -eq 1 ]]; then
+	RUN=(bash -c "$1")
+else
+	RUN=("$@")
+fi
 
 DEPENDENCIES=$(get_bundle_dependencies)
 FAILED=()
@@ -35,7 +40,7 @@ while read -r dependency; do
 	fi
 
 	echo "--- ${repo_path}: ---"
-	if ! ( cd "${repo_path}" && bash -c "${COMMAND}" ); then
+	if ! ( cd "${repo_path}" && "${RUN[@]}" ); then
 		FAILED+=("${repo_path}")
 	fi
 done <<< "${DEPENDENCIES}"
