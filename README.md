@@ -49,6 +49,8 @@ Running `composer install` or `composer update` also fetches every clone and fas
 
 The `wp maintenance` commands don't need the full environment: any `wp` executable picks them up through `wp-cli.yml` when run from this folder. They authenticate with the GitHub CLI when it is logged in, and with the `GH_TOKEN` or `GITHUB_TOKEN` environment variable otherwise. Run `wp maintenance doctor` to check the setup.
 
+To find out which packages have unreleased changes, run `wp maintenance release plan --bundle`. It makes no changes, and for each package it says whether a milestone is ready for `wp maintenance release generate` or what a maintainer still needs to decide, such as which milestone a merged pull request belongs to.
+
 ## Using
 
 This package implements the following commands:
@@ -244,8 +246,25 @@ wp maintenance release close-released [<repo>...] [--bundle] [--all]
 Generate a new release out of an open milestone
 
 ~~~
-wp maintenance release generate [<repo>...] [--bundle] [--all]
+wp maintenance release generate [<repo>...] [--bundle] [--all] [--milestone=<milestone>] [--notes-file=<file>] [--yes]
 ~~~
+
+Tags the default branch with the version of the milestone, publishes a
+release whose notes list the pull requests merged for that milestone,
+and closes the milestone.
+
+A milestone is skipped, with a warning, when it still has open issues or
+pull requests, has no merged pull requests, is not a version newer than
+the latest tag, or was already tagged. When a repository has several
+milestones that could be released, it is skipped unless --milestone says
+which one, as they would all tag the same commit.
+
+It is also skipped unless `wp maintenance release plan` reports it as
+ready for that milestone: the tag ships everything merged into the
+default branch since the latest tag, so all of it has to belong to the
+milestone, and all of the milestone's pull requests have to be in it.
+
+Run `wp maintenance release plan` first to see what is ready.
 
 **OPTIONS**
 
@@ -258,6 +277,80 @@ wp maintenance release generate [<repo>...] [--bundle] [--all]
 
 	[--all]
 		Generate releases for all repositories in the wp-cli organization.
+
+	[--milestone=<milestone>]
+		Only release the milestone with this title. Needs a single repository.
+
+	[--notes-file=<file>]
+		Use the contents of this file as release notes, instead of the
+		generated list of pull requests. Useful to publish notes that were
+		reviewed and tidied up first. Needs --milestone.
+
+	[--yes]
+		Publish without asking for confirmation.
+
+**EXAMPLES**
+
+    # Review the generated notes, then publish them after fixing a typo.
+    $ wp maintenance release-notes cache-command 3.0.1 --source=pull-request > notes.md
+    $ wp maintenance release generate cache-command --milestone=3.0.1 --notes-file=notes.md --yes
+
+
+
+### wp maintenance release plan
+
+Checks which repositories have unreleased changes, and whether their
+
+~~~
+wp maintenance release plan [<repo>...] [--bundle] [--all] [--format=<format>]
+~~~
+
+milestones are ready to release them.
+
+Compares the default branch of each repository against its latest
+version tag and looks at the pull requests merged since. A repository is
+`up_to_date` when none of them calls for a release, `ready` when they
+all sit on one open milestone that `release generate` can release, and
+`needs_human` when a maintainer has to decide something first, such as
+which milestone a pull request belongs to. The blockers say what.
+
+Routine pull requests by Dependabot or GitHub Actions only count when
+they are on a milestone.
+
+Makes no changes.
+
+**OPTIONS**
+
+	[<repo>...]
+		Name(s) of the repository to check. If no user/org was provided,
+		'wp-cli' org is assumed.
+
+	[--bundle]
+		Check every package of the bundle.
+
+	[--all]
+		Check all repositories in the wp-cli organization.
+
+	[--format=<format>]
+		Render output in a specific format. Defaults to a table in a terminal
+		and to JSON otherwise. The JSON lists the unreleased pull requests and
+		the blockers of each repository as well.
+		---
+		options:
+		  - table
+		  - json
+		---
+
+**EXAMPLES**
+
+    $ wp maintenance release plan cache-command db-command eval-command
+    +----------------------+-------------+------------+---------+------------+
+    | repo                 | status      | latest_tag | release | blockers   |
+    +----------------------+-------------+------------+---------+------------+
+    | wp-cli/cache-command | ready       | v3.0.0     | v3.0.1  |            |
+    | wp-cli/db-command    | needs_human | v3.0.1     |         | open_items |
+    | wp-cli/eval-command  | up_to_date  | v3.0.1     |         |            |
+    +----------------------+-------------+------------+---------+------------+
 
 
 
