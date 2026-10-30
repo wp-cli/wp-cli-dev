@@ -1,33 +1,19 @@
 <?php
 /**
- * Loads the maintenance commands.
+ * Loads the maintenance commands of this checkout.
  *
- * Within a full development environment, Composer does that. Without one, any
- * `wp` executable can still run them, so the maintenance tooling only needs
+ * Any `wp` executable can run them, so the maintenance tooling only needs
  * WP-CLI, git and the GitHub CLI, not a complete install of every package.
+ *
+ * The classes are loaded right away instead of through an autoloader. The
+ * `wp` executable may belong to another checkout, such as the main checkout
+ * run within a worktree, and its Composer autoloader maps the same namespace.
+ * WP-CLI registers that autoloader after this file runs, so it would take
+ * precedence and silently run the other checkout's, possibly older, code.
  */
 
-$composer_autoloader = dirname( __DIR__ ) . '/vendor/autoload.php';
-
-if ( is_file( $composer_autoloader ) ) {
-	require_once $composer_autoloader;
-	return;
+foreach ( glob( __DIR__ . '/src/*.php' ) as $maintenance_class_file ) {
+	require_once $maintenance_class_file;
 }
-
-spl_autoload_register(
-	static function ( $class_name ) {
-		$prefix = 'WP_CLI\\Maintenance\\';
-
-		if ( 0 !== strpos( $class_name, $prefix ) ) {
-			return;
-		}
-
-		$file = __DIR__ . '/src/' . str_replace( '\\', '/', substr( $class_name, strlen( $prefix ) ) ) . '.php';
-
-		if ( is_file( $file ) ) {
-			require $file;
-		}
-	}
-);
 
 require_once __DIR__ . '/bootstrap.php';
