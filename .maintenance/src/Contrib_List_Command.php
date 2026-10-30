@@ -8,17 +8,17 @@ final class Contrib_List_Command {
 	/**
 	 * Lists all contributors to this release.
 	 *
-	 * Run within the main WP-CLI project repository.
+	 * Only authors of merged pull requests count; bots are left out.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [<repo>]
-	 * : Name of the repository to fetch the release notes for. If no user/org
-	 * was provided, 'wp-cli' org is assumed. If no repo is passed, release
-	 * notes for the entire org state since the last bundle release are fetched.
+	 * : Name of the repository to list the contributors for. If no user/org
+	 * was provided, 'wp-cli' org is assumed. If no repo is passed, the
+	 * contributors to the entire org since the last bundle release are listed.
 	 *
 	 * [<milestone>...]
-	 * : Name of one or more milestones to fetch the release notes for. If none
+	 * : Name of one or more milestones to list the contributors for. If none
 	 * are passed, the current open one is assumed.
 	 *
 	 * [--release=<version>]
@@ -41,6 +41,7 @@ final class Contrib_List_Command {
 	 * options:
 	 *   - markdown
 	 *   - html
+	 *   - json
 	 * ---
 	 *
 	 * @when before_wp_load
@@ -49,18 +50,15 @@ final class Contrib_List_Command {
 		$repos      = null;
 		$use_bundle = false;
 
-		$ignored_contributors = [
-			'github-actions[bot]',
-		];
-
 		if ( count( $args ) > 0 ) {
-			$repos = [ array_shift( $args ) ];
+			$repos = [ GitHub::qualify_repo( array_shift( $args ) ) ];
 		}
 
 		$milestone_names = $args;
 
 		$release    = Utils\get_flag_value( $assoc_args, 'release' );
 		$bundle_ref = Utils\get_flag_value( $assoc_args, 'bundle-ref' );
+		$format     = Utils\get_flag_value( $assoc_args, 'format', 'markdown' );
 
 		if ( empty( $repos ) ) {
 			$use_bundle = true;
@@ -73,39 +71,7 @@ final class Contrib_List_Command {
 		// Get the contributors to the current open large project milestones
 		foreach ( $repos as $repo ) {
 			if ( $milestone_names ) {
-				$milestone_names = (array) $milestone_names;
-
-				$potential_milestones = GitHub::get_project_milestones(
-					$repo,
-					array( 'state' => 'all' )
-				);
-
-				$milestones = array();
-				foreach ( $potential_milestones as $potential_milestone ) {
-					if ( in_array(
-						$potential_milestone->title,
-						$milestone_names,
-						true
-					) ) {
-						$milestones[] = $potential_milestone;
-						$index        = array_search(
-							$potential_milestone->title,
-							$milestone_names,
-							true
-						);
-						unset( $milestone_names[ $index ] );
-					}
-				}
-
-				if ( ! empty( $milestone_names ) ) {
-					WP_CLI::warning(
-						sprintf(
-							"Couldn't find the requested milestone(s) '%s' in repository '%s'.",
-							implode( "', '", $milestone_names ),
-							$repo
-						)
-					);
-				}
+				$milestones = Release_Notes::find_milestones( $repo, $milestone_names );
 			} else {
 				$milestone  = Bundle::get_release_milestone( $repo, $use_bundle ? $release : null );
 				$milestones = $milestone ? [ $milestone ] : [];
@@ -150,7 +116,7 @@ final class Contrib_List_Command {
 				WP_CLI::debug( "Closed {$package_name} milestone(s): " . implode( ', ', $milestone_titles ), 'contrib-list' );
 
 				foreach ( $milestones as $milestone ) {
-					$pull_requests     = GitHub::get_project_milestone_pull_requests( $package_name, $milestone->number );
+					$pull_requests     = GitHub::get_project_milestone_pull_requests( Bundle::get_repo( $package_name ), $milestone->number );
 					$repo_contributors = GitHub::parse_contributors_from_pull_requests( $pull_requests );
 					WP_CLI::debug( count( $repo_contributors ) . ' contributors, ' . count( $pull_requests ) . " pull requests in '{$package_name}' milestone '{$milestone->title}'", 'contrib-list' );
 					$pull_request_count += count( $pull_requests );
@@ -159,24 +125,39 @@ final class Contrib_List_Command {
 			}
 		}
 
-		$contributors = array_diff( $contributors, $ignored_contributors );
+		asort( $contributors, SORT_NATURAL | SORT_FLAG_CASE );
+
+		if ( 'json' === $format ) {
+			$list = [];
+			foreach ( $contributors as $url => $login ) {
+				$list[] = [
+					'login' => $login,
+					'url'   => $url,
+				];
+			}
+
+			WP_CLI::line(
+				(string) json_encode(
+					[
+						'total_contributors'  => count( $contributors ),
+						'total_pull_requests' => $pull_request_count,
+						'contributors'        => $list,
+					],
+					JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+				)
+			);
+			return;
+		}
 
 		WP_CLI::log( 'Total contributors: ' . count( $contributors ) );
 		WP_CLI::log( 'Total pull requests: ' . $pull_request_count );
 
-		// Sort and render the contributor list
-		asort( $contributors, SORT_NATURAL | SORT_FLAG_CASE );
-		if ( in_array( $assoc_args['format'], array( 'markdown', 'html' ), true ) ) {
-			$contrib_list = '';
-			foreach ( $contributors as $url => $login ) {
-				if ( 'markdown' === $assoc_args['format'] ) {
-					$contrib_list .= '[@' . $login . '](' . $url . '), ';
-				} elseif ( 'html' === $assoc_args['format'] ) {
-					$contrib_list .= '<a href="' . $url . '">@' . $login . '</a>, ';
-				}
-			}
-			$contrib_list = rtrim( $contrib_list, ', ' );
-			WP_CLI::log( $contrib_list );
+		$contrib_list = [];
+		foreach ( $contributors as $url => $login ) {
+			$contrib_list[] = 'html' === $format
+				? '<a href="' . $url . '">@' . $login . '</a>'
+				: '[@' . $login . '](' . $url . ')';
 		}
+		WP_CLI::log( implode( ', ', $contrib_list ) );
 	}
 }

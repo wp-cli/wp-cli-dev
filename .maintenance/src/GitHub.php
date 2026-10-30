@@ -1,7 +1,7 @@
 <?php namespace WP_CLI\Maintenance;
 
-use stdClass;
 use WP_CLI;
+use WP_CLI\Process;
 use WP_CLI\Utils;
 
 class GitHub {
@@ -9,45 +9,116 @@ class GitHub {
 	const API_ROOT = 'https://api.github.com/';
 
 	/**
+	 * Minimum number of seconds between two write requests, as GitHub asks
+	 * of integrations to stay clear of its secondary rate limits.
+	 */
+	const WRITE_INTERVAL = 1;
+
+	/**
+	 * Credentials in use, resolved on first use.
+	 *
+	 * @var array{token: string|null, source: string|null}|null
+	 */
+	private static $auth;
+
+	/**
+	 * Time of the last write request.
+	 *
+	 * @var float
+	 */
+	private static $last_write = 0.0;
+
+	/**
+	 * Gets the credentials to authenticate requests with.
+	 *
+	 * @return array{token: string|null, source: string|null} Token and where
+	 *                                                       it came from, both
+	 *                                                       null when there are
+	 *                                                       no credentials.
+	 */
+	public static function get_auth() {
+		if ( null === self::$auth ) {
+			self::$auth = self::resolve_auth( [ __CLASS__, 'get_gh_token' ], 'getenv' );
+		}
+
+		return self::$auth;
+	}
+
+	/**
+	 * Picks the credentials to use: the login of the GitHub CLI first, so that
+	 * an authenticated `gh` just works, then the GH_TOKEN and GITHUB_TOKEN
+	 * environment variables.
+	 *
+	 * @param callable $gh_token Returns the token of the GitHub CLI, or null.
+	 * @param callable $getenv   Returns the value of an environment variable.
+	 *
+	 * @return array{token: string|null, source: string|null}
+	 */
+	public static function resolve_auth( callable $gh_token, callable $getenv ) {
+		$token = $gh_token();
+
+		if ( $token ) {
+			return [
+				'token'  => $token,
+				'source' => 'gh',
+			];
+		}
+
+		foreach ( [ 'GH_TOKEN', 'GITHUB_TOKEN' ] as $variable ) {
+			$token = $getenv( $variable );
+
+			if ( $token ) {
+				return [
+					'token'  => $token,
+					'source' => $variable,
+				];
+			}
+		}
+
+		return [
+			'token'  => null,
+			'source' => null,
+		];
+	}
+
+	/**
+	 * Gets the token the GitHub CLI is logged in with.
+	 *
+	 * @return string|null Token, or null when `gh` is missing or logged out.
+	 */
+	private static function get_gh_token() {
+		$result = Process::create( 'gh auth token --hostname github.com', null, null )->run();
+
+		if ( 0 !== $result->return_code ) {
+			return null;
+		}
+
+		$token = trim( $result->stdout );
+
+		return '' === $token ? null : $token;
+	}
+
+	/**
+	 * Adds the 'wp-cli' org to a repository name that has none.
+	 *
+	 * @param string $repo Repository name, with or without org.
+	 *
+	 * @return string
+	 */
+	public static function qualify_repo( $repo ) {
+		return false === strpos( $repo, '/' ) ? "wp-cli/{$repo}" : $repo;
+	}
+
+	/**
 	 * Gets the milestones for a given project.
 	 *
 	 * @param string $project
+	 * @param array  $args
 	 *
 	 * @return array
 	 */
-	public static function get_project_milestones(
-		$project,
-		$args = array()
-	) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/milestones',
-			$project
-		);
-
-		$args['per_page'] = 100;
-
-		$milestones = [];
-		do {
-			list( $body, $headers ) = self::request( $request_url, $args );
-			foreach ( $body as $milestone ) {
-				$milestones[] = $milestone;
-			}
-			$args        = array();
-			$request_url = false;
-			// Set $request_url to 'rel="next" if present'
-			if ( ! empty( $headers['Link'] ) ) {
-				$bits = explode( ',', $headers['Link'] );
-				foreach ( $bits as $bit ) {
-					if ( false !== stripos( $bit, 'rel="next"' ) ) {
-						$hrefandrel  = explode( '; ', $bit );
-						$request_url = trim( trim( $hrefandrel[0] ), '<>' );
-						break;
-					}
-				}
-			}
-		} while ( $request_url );
-
-		return $milestones;
+	public static function get_project_milestones( $project, $args = [] ) {
+		return self::request_all( self::API_ROOT . "repos/{$project}/milestones", $args );
 	}
 
 	/**
@@ -57,28 +128,22 @@ class GitHub {
 	 *
 	 * @return array
 	 */
-	public static function get_project_releases(
-		$project,
-		$args = array()
-	) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/releases',
-			$project
-		);
-
-		$args['per_page'] = 100;
-
-		list( $body, $headers ) = self::request( $request_url, $args );
-
-		return $body;
+	public static function get_project_releases( $project ) {
+		return self::request_all( self::API_ROOT . "repos/{$project}/releases" );
 	}
 
 	/**
-	 * Gets the releases for a given project.
+	 * Creates a release, and with it its tag.
 	 *
 	 * @param string $project
+	 * @param string $tag_name
+	 * @param string $target_commitish
+	 * @param string $name
+	 * @param string $body
+	 * @param bool   $draft
+	 * @param bool   $prerelease
 	 *
-	 * @return array
+	 * @return object
 	 */
 	public static function create_release(
 		$project,
@@ -87,21 +152,10 @@ class GitHub {
 		$name,
 		$body,
 		$draft = false,
-		$prerelease = false,
-		$args = []
+		$prerelease = false
 	) {
-
-		if ( ! getenv( 'GITHUB_TOKEN' ) ) {
-			WP_CLI::error( 'GITHUB_TOKEN environment variable must be set.' );
-		}
-
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/releases',
-			$project
-		);
-
-		$args = array_merge(
-			$args,
+		list( $release ) = self::request(
+			self::API_ROOT . "repos/{$project}/releases",
 			[
 				'tag_name'         => (string) $tag_name,
 				'target_commitish' => (string) $target_commitish,
@@ -109,14 +163,11 @@ class GitHub {
 				'body'             => (string) $body,
 				'draft'            => (bool) $draft,
 				'prerelease'       => (bool) $prerelease,
-			]
+			],
+			'POST'
 		);
 
-		$headers['http_verb'] = 'POST';
-
-		list( $body, $headers ) = self::request( $request_url, $args, $headers );
-
-		return $body;
+		return $release;
 	}
 
 	/**
@@ -124,416 +175,357 @@ class GitHub {
 	 *
 	 * @param string $project
 	 * @param string $tag
-	 * @param array  $args
 	 *
-	 * @return array|false
+	 * @return object|null Release, or null when the tag has none.
 	 */
-	public static function get_release_by_tag(
-		$project,
-		$tag,
-		$args = array()
-	) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/releases/tags/%s',
-			$project,
-			$tag
+	public static function get_release_by_tag( $project, $tag ) {
+		$result = self::request(
+			self::API_ROOT . "repos/{$project}/releases/tags/" . rawurlencode( $tag ),
+			[],
+			'GET',
+			[ 404 ]
 		);
 
-		$args['per_page'] = 100;
-
-		$result = self::request( $request_url, $args );
-
-		if ( ! $result ) {
-			return false;
-		}
-
-		list( $body, $headers ) = $result;
-
-		return $body;
+		return $result ? $result[0] : null;
 	}
 
 	/**
-	 * Gets the issues that are labeled with a given label.
+	 * Gets the issues and pull requests, open or closed, that carry a label.
 	 *
 	 * @param string $project
 	 * @param string $label
-	 * @param array  $args
 	 *
-	 * @return array|false
+	 * @return array
 	 */
-	public static function get_issues_by_label(
-		$project,
-		$label,
-		$args = array()
-	) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/issues',
-			$project
-		);
-
-		$args['per_page'] = 100;
-		$args['labels']   = $label;
-
-		list( $body, $headers ) = self::request( $request_url, $args );
-
-		return $body;
+	public static function get_issues_by_label( $project, $label ) {
+		return self::get_issues( $project, [ 'labels' => $label ] );
 	}
 
 	/**
 	 * Removes a label from an issue.
 	 *
 	 * @param string $project
-	 * @param string $issue
+	 * @param int    $issue
 	 * @param string $label
-	 * @param array  $args
-	 *
-	 * @return array|false
 	 */
-	public static function remove_label(
-		$project,
-		$issue,
-		$label,
-		$args = array()
-	) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/issues/%s/labels/%s',
-			$project,
-			$issue,
-			$label
+	public static function remove_label( $project, $issue, $label ) {
+		self::request(
+			self::API_ROOT . "repos/{$project}/issues/{$issue}/labels/" . rawurlencode( $label ),
+			[],
+			'DELETE'
 		);
-
-		$headers['http_verb'] = 'DELETE';
-
-		list( $body, $headers ) = self::request(
-			$request_url,
-			$args,
-			$headers
-		);
-
-		return $body;
 	}
 
 	/**
-	 * Close a milestone.
+	 * Closes a milestone.
 	 *
 	 * @param string $project
-	 * @param string $milestone
-	 *
-	 * @return array|false
+	 * @param int    $milestone
 	 */
-	public static function close_milestone(
-		$project,
-		$milestone
-	) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/milestones/%s',
-			$project,
-			$milestone
+	public static function close_milestone( $project, $milestone ) {
+		self::request(
+			self::API_ROOT . "repos/{$project}/milestones/{$milestone}",
+			[ 'state' => 'closed' ],
+			'PATCH'
 		);
-
-		$headers['http_verb'] = 'PATCH';
-
-		$args = [
-			'state' => 'closed',
-		];
-
-		list( $body, $headers ) = self::request( $request_url, $args, $headers );
-
-		return $body;
 	}
 
 	/**
 	 * Adds a label to an issue.
 	 *
 	 * @param string $project
-	 * @param string $issue
+	 * @param int    $issue
 	 * @param string $label
-	 * @param array  $args
-	 *
-	 * @return array|false
 	 */
-	public static function add_label(
-		$project,
-		$issue,
-		$label,
-		$args = array()
-	) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/issues/%s/labels',
-			$project,
-			$issue,
-			$label
+	public static function add_label( $project, $issue, $label ) {
+		self::request(
+			self::API_ROOT . "repos/{$project}/issues/{$issue}/labels",
+			[ 'labels' => [ $label ] ],
+			'POST'
 		);
-
-		$headers['http_verb'] = 'POST';
-
-		$args = array( $label );
-
-		list( $body, $headers ) = self::request(
-			$request_url,
-			$args,
-			$headers
-		);
-
-		return $body;
 	}
 
 	/**
-	 * Delete a label from a repository.
+	 * Deletes a label from a repository.
 	 *
 	 * @param string $project
 	 * @param string $label
-	 * @param array  $args
-	 *
-	 * @return array|false
 	 */
-	public static function delete_label(
-		$project,
-		$label,
-		$args = array()
-	) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/labels/%s',
-			$project,
-			$label
+	public static function delete_label( $project, $label ) {
+		self::request(
+			self::API_ROOT . "repos/{$project}/labels/" . rawurlencode( $label ),
+			[],
+			'DELETE'
 		);
-
-		list( $body, $headers ) = self::request( $request_url, $args, $headers );
-
-		return $body;
 	}
 
 	/**
-	 * Gets the pull requests assigned to a milestone of a given project.
+	 * Gets the merged pull requests assigned to a milestone of a given
+	 * project. Pull requests that were closed without merging never shipped,
+	 * so they are left out.
 	 *
-	 * @param string  $project
-	 * @param integer $milestone_id
+	 * @param string $project
+	 * @param int    $milestone_id
 	 *
 	 * @return array
 	 */
-	public static function get_project_milestone_pull_requests(
-		$project,
-		$milestone_id
-	) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/issues',
-			$project
+	public static function get_project_milestone_pull_requests( $project, $milestone_id ) {
+		return self::filter_merged_pull_requests(
+			self::get_issues( $project, [ 'milestone' => $milestone_id ] )
 		);
-
-		$args = array(
-			'per_page'  => 100,
-			'milestone' => $milestone_id,
-			'state'     => 'all',
-		);
-
-		$pull_requests = array();
-		do {
-			list( $body, $headers ) = self::request( $request_url, $args );
-			foreach ( $body as $issue ) {
-				if ( ! empty( $issue->pull_request ) ) {
-					$pull_requests[] = $issue;
-				}
-			}
-			$args        = array();
-			$request_url = false;
-			// Set $request_url to 'rel="next" if present'
-			if ( ! empty( $headers['Link'] ) ) {
-				$bits = explode( ',', $headers['Link'] );
-				foreach ( $bits as $bit ) {
-					if ( false !== stripos( $bit, 'rel="next"' ) ) {
-						$hrefandrel  = explode( '; ', $bit );
-						$request_url = trim( trim( $hrefandrel[0] ), '<>' );
-						break;
-					}
-				}
-			}
-		} while ( $request_url );
-
-		return $pull_requests;
 	}
 
 	/**
-	 * Check whether a specific pull request was actually merged.
+	 * Keeps the merged pull requests out of a list of issues.
 	 *
-	 * @param $project
-	 * @param $pull_request_number
-	 * @return bool
+	 * @param object[] $issues Issues as returned by the issues API.
+	 *
+	 * @return object[]
 	 */
-	public static function was_pull_request_merged( $project, $pull_request_number ) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/pulls/%s',
-			$project,
-			$pull_request_number
+	public static function filter_merged_pull_requests( array $issues ) {
+		return array_values(
+			array_filter(
+				$issues,
+				static function ( $issue ) {
+					return ! empty( $issue->pull_request->merged_at );
+				}
+			)
 		);
-
-		list( $body, $headers ) = self::request( $request_url );
-
-		return ! empty( $body->merged_at );
 	}
 
 	/**
-	 * Parses the contributors from pull request objects.
+	 * Parses the contributors from pull request objects. Bots are not
+	 * contributors.
 	 *
 	 * @param array $pull_requests
 	 *
-	 * @return array
+	 * @return array<string, string> Profile URL => login.
 	 */
-	public static function parse_contributors_from_pull_requests(
-		$pull_requests
-	) {
-		$contributors = array();
+	public static function parse_contributors_from_pull_requests( $pull_requests ) {
+		$contributors = [];
+
 		foreach ( $pull_requests as $pull_request ) {
-			if ( ! empty( $pull_request->user ) ) {
-				$contributors[ $pull_request->user->html_url ] = $pull_request->user->login;
+			if ( empty( $pull_request->user ) || 'Bot' === $pull_request->user->type ) {
+				continue;
 			}
+
+			$contributors[ $pull_request->user->html_url ] = $pull_request->user->login;
 		}
 
 		return $contributors;
 	}
 
 	/**
-	 * Get latest release.
-	 *
-	 * @param string $project
-	 *
-	 * @return string
-	 */
-	public static function get_latest_release( $project ) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/releases/latest',
-			$project
-		);
-
-		$args = array(
-			'per_page' => 100,
-			'state'    => 'all',
-		);
-
-		list( $body, $headers ) = self::request( $request_url, $args );
-
-		return $body;
-	}
-
-	/**
-	 * Get issues/PRs.
+	 * Gets issues and pull requests, open or closed unless filtered otherwise.
 	 *
 	 * @param string $project
 	 * @param array  $args
 	 *
-	 * @return string
+	 * @return array
 	 */
 	public static function get_issues( $project, $args = [] ) {
-		$request_url = sprintf(
-			self::API_ROOT . 'repos/%s/issues',
-			$project
+		return self::request_all(
+			self::API_ROOT . "repos/{$project}/issues",
+			array_merge( [ 'state' => 'all' ], $args )
 		);
-
-		$args = array_merge(
-			[
-				'per_page' => 100,
-				'state'    => 'all',
-			],
-			$args
-		);
-
-		list( $body, $headers ) = self::request( $request_url, $args );
-
-		return $body;
 	}
 
 	/**
-	 * Get all repositories of the wp-cli organization.
+	 * Gets all repositories of the wp-cli organization.
 	 *
-	 * @param array  $args
-	 *
-	 * @return stdClass[]
+	 * @return object[]
 	 */
-	public static function get_organization_repos( $args = [] ) {
-		$request_url = self::API_ROOT . 'orgs/wp-cli/repos';
-
-		$args = array_merge(
+	public static function get_organization_repos() {
+		return self::request_all(
+			self::API_ROOT . 'orgs/wp-cli/repos',
 			[
-				'per_page'  => 100,
-				'state'     => 'all',
 				'sort'      => 'full_name',
 				'direction' => 'asc',
-			],
-			$args
+			]
 		);
-
-		list( $body, $headers ) = self::request( $request_url, $args );
-
-		return $body;
 	}
 
-
 	/**
-	 * Get the default branch of a repository.
+	 * Gets the default branch of a repository.
 	 *
-	 * @param string $project Project the get the default branch for.
+	 * @param string $project Project to get the default branch for.
 	 *
 	 * @return string Default branch of the repository.
 	 */
 	public static function get_default_branch( $project ) {
-		$request_url = self::API_ROOT . "repos/{$project}";
+		list( $repository ) = self::request( self::API_ROOT . "repos/{$project}" );
 
-		list( $body, $headers ) = self::request( $request_url );
-
-		return $body->default_branch;
+		return $repository->default_branch;
 	}
 
 	/**
-	 * Makes a request to the GitHub API.
+	 * Makes a GET request and follows the pagination to collect every item.
 	 *
 	 * @param string $url
 	 * @param array  $args
-	 * @param array  $headers
 	 *
-	 * @return array|false
+	 * @return array
 	 */
-	public static function request(
-		$url,
-		$args = array(),
-		$headers = array()
-	) {
-		$headers = array_merge(
-			$headers,
-			array(
-				'Accept'     => 'application/vnd.github.v3+json',
-				'User-Agent' => 'WP-CLI',
-			)
-		);
-		$token   = getenv( 'GITHUB_TOKEN' );
-		if ( $token ) {
-			$headers['Authorization'] = 'token ' . $token;
+	public static function request_all( $url, $args = [] ) {
+		$args['per_page'] = 100;
+
+		$items = [];
+		do {
+			list( $body, $headers ) = self::request( $url, $args );
+
+			$items = array_merge( $items, (array) $body );
+			$url   = self::get_next_page_url( isset( $headers['link'] ) ? $headers['link'] : '' );
+			// The next page URL carries the query arguments already.
+			$args = [];
+		} while ( $url );
+
+		return $items;
+	}
+
+	/**
+	 * Extracts the URL of the next page from a Link header.
+	 *
+	 * @param string $link_header
+	 *
+	 * @return string|null
+	 */
+	public static function get_next_page_url( $link_header ) {
+		return preg_match( '/<([^>]+)>;\s*rel="next"/', $link_header, $matches ) ? $matches[1] : null;
+	}
+
+	/**
+	 * Makes a request to the GitHub API. Requests that change something need
+	 * credentials, so they fail before reaching GitHub without any.
+	 *
+	 * @param string $url
+	 * @param array  $args           Query arguments, or the JSON body for
+	 *                               requests that change something.
+	 * @param string $method         HTTP method.
+	 * @param int[]  $allowed_errors HTTP status codes that return null instead
+	 *                               of failing.
+	 *
+	 * @return array{0: mixed, 1: mixed}|null Decoded body and headers.
+	 */
+	public static function request( $url, $args = [], $method = 'GET', $allowed_errors = [] ) {
+		$auth = self::get_auth();
+
+		$headers = [
+			'Accept'               => 'application/vnd.github+json',
+			'User-Agent'           => 'WP-CLI',
+			'X-GitHub-Api-Version' => '2022-11-28',
+		];
+
+		if ( $auth['token'] ) {
+			$headers['Authorization'] = 'Bearer ' . $auth['token'];
 		}
 
-		$verb = 'GET';
-		if ( isset( $headers['http_verb'] ) ) {
-			$verb = $headers['http_verb'];
-			unset( $headers['http_verb'] );
-		}
-
-		if ( 'POST' === $verb || 'PATCH' === $verb ) {
-			$args = json_encode( $args );
-		}
-
-		$response = Utils\http_request( $verb, $url, $args, $headers );
-
-		if ( 20 !== (int) substr( $response->status_code, 0, 2 ) ) {
-			if ( isset( $args['throw_errors'] ) && false === $args['throw_errors'] ) {
-				return false;
+		if ( 'GET' !== $method ) {
+			if ( ! $auth['token'] ) {
+				WP_CLI::error( 'No GitHub credentials found, but this change needs them. Log in with `gh auth login`, or set GH_TOKEN or GITHUB_TOKEN.' );
 			}
 
-			WP_CLI::error(
-				sprintf(
-					"Failed request to $url\nGitHub API returned: %s (HTTP code %d)",
-					$response->body,
-					$response->status_code
-				)
-			);
+			self::pace_writes();
+
+			if ( $args ) {
+				$headers['Content-Type'] = 'application/json';
+				$args                    = json_encode( $args );
+			}
 		}
 
-		return array( json_decode( $response->body ), $response->headers );
+		$response = Utils\http_request( $method, $url, $args, $headers );
+		$status   = (int) $response->status_code;
+
+		if ( $status >= 200 && $status < 300 ) {
+			return [ json_decode( $response->body ), $response->headers ];
+		}
+
+		if ( in_array( $status, $allowed_errors, true ) ) {
+			return null;
+		}
+
+		$body    = json_decode( $response->body );
+		$message = isset( $body->message ) ? $body->message : $response->body;
+		$code    = self::get_error_code( $status, $message, $response->headers['x-ratelimit-remaining'] );
+
+		WP_CLI::error(
+			sprintf(
+				"GitHub API request failed (%s): %s %s returned HTTP %d: %s\n%s",
+				$code,
+				$method,
+				$url,
+				$status,
+				$message,
+				self::get_error_hint( $code, $auth['source'] )
+			)
+		);
+	}
+
+	/**
+	 * Classifies a failed request, so that the reason for a failure can be
+	 * acted upon without parsing the message.
+	 *
+	 * @param int         $status    HTTP status code.
+	 * @param string      $message   Error message returned by GitHub.
+	 * @param string|null $remaining Value of the X-RateLimit-Remaining header.
+	 *
+	 * @return string One of 'auth_failed', 'rate_limited', 'forbidden',
+	 *                'not_found', 'validation_failed' or 'http_error'.
+	 */
+	public static function get_error_code( $status, $message, $remaining = null ) {
+		if ( 401 === $status ) {
+			return 'auth_failed';
+		}
+
+		if ( 429 === $status
+			|| ( 403 === $status && ( '0' === (string) $remaining || false !== stripos( $message, 'rate limit' ) ) ) ) {
+			return 'rate_limited';
+		}
+
+		$codes = [
+			403 => 'forbidden',
+			404 => 'not_found',
+			422 => 'validation_failed',
+		];
+
+		return isset( $codes[ $status ] ) ? $codes[ $status ] : 'http_error';
+	}
+
+	/**
+	 * Suggests what to do about a failed request.
+	 *
+	 * @param string      $code   Error code from get_error_code().
+	 * @param string|null $source Source of the credentials in use.
+	 *
+	 * @return string
+	 */
+	private static function get_error_hint( $code, $source ) {
+		$credentials = $source ? "credentials from {$source}" : 'no credentials';
+
+		switch ( $code ) {
+			case 'auth_failed':
+				return "The {$credentials} were rejected. Check them with `wp maintenance doctor`.";
+			case 'rate_limited':
+				return $source
+					? 'Wait for the rate limit to reset, see `wp maintenance doctor`.'
+					: 'Anonymous requests have a low rate limit. Log in with `gh auth login`, or set GH_TOKEN or GITHUB_TOKEN.';
+			case 'forbidden':
+			case 'not_found':
+				return "Requested with {$credentials}. The repository may not exist, or the account may lack access to it.";
+			default:
+				return "Requested with {$credentials}.";
+		}
+	}
+
+	/**
+	 * Waits until enough time has passed since the last write request.
+	 */
+	private static function pace_writes() {
+		$wait = self::$last_write + self::WRITE_INTERVAL - microtime( true );
+
+		if ( $wait > 0 ) {
+			usleep( (int) ( $wait * 1000000 ) );
+		}
+
+		self::$last_write = microtime( true );
 	}
 }
