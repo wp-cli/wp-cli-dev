@@ -9,10 +9,18 @@ class GitHub {
 	const API_ROOT = 'https://api.github.com/';
 
 	/**
-	 * Minimum number of seconds between two write requests, as GitHub asks
-	 * of integrations to stay clear of its secondary rate limits.
+	 * Default minimum number of seconds between two write requests, as GitHub
+	 * asks of integrations to stay clear of its secondary rate limits.
 	 */
-	const WRITE_INTERVAL = 1;
+	const DEFAULT_WRITE_INTERVAL = 1.0;
+
+	/**
+	 * Minimum number of seconds between two write requests, or null until it
+	 * is resolved from the WP_CLI_GITHUB_WRITE_INTERVAL environment variable.
+	 *
+	 * @var float|null
+	 */
+	private static $write_interval;
 
 	/**
 	 * Credentials in use, resolved on first use.
@@ -589,10 +597,38 @@ class GitHub {
 	}
 
 	/**
-	 * Waits until enough time has passed since the last write request.
+	 * Gets the minimum number of seconds between two write requests.
+	 *
+	 * Set the WP_CLI_GITHUB_WRITE_INTERVAL environment variable to space the
+	 * writes out further when GitHub still applies secondary rate limits.
+	 *
+	 * @return float
+	 */
+	public static function get_write_interval() {
+		if ( null === self::$write_interval ) {
+			$interval             = getenv( 'WP_CLI_GITHUB_WRITE_INTERVAL' );
+			self::$write_interval = is_numeric( $interval ) && $interval >= 0 ? (float) $interval : self::DEFAULT_WRITE_INTERVAL;
+		}
+
+		return self::$write_interval;
+	}
+
+	/**
+	 * Sets the minimum number of seconds between two write requests, such as
+	 * 0 for tests against a fake API.
+	 *
+	 * @param float $seconds
+	 */
+	public static function set_write_interval( $seconds ) {
+		self::$write_interval = max( 0.0, (float) $seconds );
+	}
+
+	/**
+	 * Waits until the write interval has passed since the last write request.
+	 * When it already has, the write goes out right away.
 	 */
 	private static function pace_writes() {
-		$wait = self::$last_write + self::WRITE_INTERVAL - microtime( true );
+		$wait = self::$last_write + self::get_write_interval() - microtime( true );
 
 		if ( $wait > 0 ) {
 			usleep( (int) ( $wait * 1000000 ) );

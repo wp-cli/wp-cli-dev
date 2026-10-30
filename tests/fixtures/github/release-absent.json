@@ -1,0 +1,10 @@
+{
+    "request": "GET /repos/wp-cli/block-command/releases/tags/v0.0.0",
+    "status": 404,
+    "headers": {},
+    "body": {
+        "message": "Not Found",
+        "documentation_url": "https://docs.github.com/rest/releases/releases#get-a-release-by-tag-name",
+        "status": "404"
+    }
+}

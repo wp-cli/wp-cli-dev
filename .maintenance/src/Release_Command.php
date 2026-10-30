@@ -48,6 +48,23 @@ final class Release_Command {
 	/**
 	 * Generate a new release out of an open milestone
 	 *
+	 * Tags the default branch with the version of the milestone, publishes a
+	 * release whose notes list the pull requests merged for that milestone,
+	 * and closes the milestone.
+	 *
+	 * A milestone is skipped, with a warning, when it still has open issues or
+	 * pull requests, has no merged pull requests, is not a version newer than
+	 * the latest tag, or was already tagged. When a repository has several
+	 * milestones that could be released, it is skipped unless --milestone says
+	 * which one, as they would all tag the same commit.
+	 *
+	 * It is also skipped unless `wp maintenance release plan` reports it as
+	 * ready for that milestone: the tag ships everything merged into the
+	 * default branch since the latest tag, so all of it has to belong to the
+	 * milestone, and all of the milestone's pull requests have to be in it.
+	 *
+	 * Run `wp maintenance release plan` first to see what is ready.
+	 *
 	 * ## OPTIONS
 	 *
 	 * [<repo>...]
@@ -60,52 +77,91 @@ final class Release_Command {
 	 * [--all]
 	 * : Generate releases for all repositories in the wp-cli organization.
 	 *
+	 * [--milestone=<milestone>]
+	 * : Only release the milestone with this title. Needs a single repository.
+	 *
+	 * [--notes-file=<file>]
+	 * : Use the contents of this file as release notes, instead of the
+	 * generated list of pull requests. Useful to publish notes that were
+	 * reviewed and tidied up first. Needs --milestone.
+	 *
+	 * [--yes]
+	 * : Publish without asking for confirmation.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Review the generated notes, then publish them after fixing a typo.
+	 *     $ wp maintenance release-notes cache-command 3.0.1 --source=pull-request > notes.md
+	 *     $ wp maintenance release generate cache-command --milestone=3.0.1 --notes-file=notes.md --yes
+	 *
 	 * @when before_wp_load
 	 */
 	public function generate( $args, $assoc_args ) {
+		$only_milestone = Utils\get_flag_value( $assoc_args, 'milestone' );
+		$notes_file     = Utils\get_flag_value( $assoc_args, 'notes-file' );
+		$confirmed      = Utils\get_flag_value( $assoc_args, 'yes', false );
+		$repos          = $this->get_repos( $args, $assoc_args );
 
-		foreach ( $this->get_repos( $args, $assoc_args ) as $repo ) {
+		if ( null !== $only_milestone && 1 !== count( $repos ) ) {
+			WP_CLI::error( '--milestone needs exactly one repository.' );
+		}
+
+		if ( null !== $notes_file ) {
+			if ( null === $only_milestone ) {
+				WP_CLI::error( '--notes-file needs --milestone.' );
+			}
+
+			$custom_notes = is_readable( $notes_file ) ? trim( (string) file_get_contents( $notes_file ) ) : '';
+			if ( '' === $custom_notes ) {
+				WP_CLI::error( "Could not read release notes from '{$notes_file}'." );
+			}
+		}
+
+		foreach ( $repos as $repo ) {
 
 			WP_CLI::log( "--- {$repo} ---" );
 
-			$releases   = GitHub::get_project_releases( $repo );
-			$milestones = GitHub::get_project_milestones( $repo );
+			$candidates = $this->get_releasable_milestones( $repo, $only_milestone );
 
-			foreach ( $milestones as $milestone ) {
-				WP_CLI::log( "Checking milestone '{$milestone->title}'..." );
-				foreach ( $releases as $release ) {
-					if ( $release->tag_name === $milestone->title || "v{$milestone->title}" === $release->tag_name ) {
-						WP_CLI::log( "Found matching release '{$release->tag_name}', skipping milestone '{$milestone->title}'..." );
-						continue 2;
-					}
-				}
-				WP_CLI::log( "Milestone '{$milestone->title}' does not have a matching release, generating one..." );
+			if ( count( $candidates ) > 1 ) {
+				WP_CLI::warning(
+					"Skipping {$repo} as several milestones could be released: "
+					. implode( ', ', array_keys( $candidates ) ) . '. Pass --milestone to pick one.'
+				);
+				continue;
+			}
 
-				if ( $this->has_open_items_on_milestone( $repo, $milestone->number ) ) {
-					WP_CLI::warning( "Skipping milestone '{$milestone->title}' as it has open issues/PRs assigned to it." );
-					continue;
-				}
+			if ( $candidates && ! $this->agrees_with_plan( $repo, $candidates ) ) {
+				continue;
+			}
+
+			foreach ( $candidates as $candidate ) {
+				list( $milestone, $notes ) = $candidate;
 
 				$title         = "Version {$milestone->title}";
-				$tag           = "v{$milestone->title}";
-				$release_notes = Release_Notes::render(
-					[ Release_Notes::get( $repo, [ $milestone ], 'pull-request' ) ],
-					'markdown',
-					false
-				);
+				$tag           = 'v' . ltrim( $milestone->title, 'v' );
+				$release_notes = isset( $custom_notes )
+					? $custom_notes . "\n"
+					: Release_Notes::render( [ $notes ], 'markdown', false );
 
 				WP_CLI::log( 'Generating the following release:' );
 				WP_CLI::log( '-----' );
 				WP_CLI::log( "{$title} ({$tag})\n{$release_notes}" );
 				WP_CLI::log( '-----' );
 
-				fwrite( STDOUT, 'Is the above correct? [y/n] ' );
-				$answer = fgets( STDIN );
-				if ( false === $answer ) {
-					WP_CLI::error( 'No answer received. This command needs an interactive terminal.' );
-				}
-				if ( 'y' !== strtolower( trim( $answer ) ) ) {
-					continue;
+				if ( ! $confirmed ) {
+					fwrite( STDOUT, 'Is the above correct? [y/n] ' );
+					$answer = fgets( STDIN );
+					if ( false === $answer ) {
+						WP_CLI::error( 'No answer received. Run this command in an interactive terminal, or pass --yes.' );
+					}
+					// A piped answer is not echoed, so end the prompt's line here.
+					if ( ! stream_isatty( STDIN ) ) {
+						fwrite( STDOUT, "\n" );
+					}
+					if ( 'y' !== strtolower( trim( $answer ) ) ) {
+						continue;
+					}
 				}
 
 				$default_branch = GitHub::get_default_branch( $repo );
@@ -117,6 +173,129 @@ final class Release_Command {
 				GitHub::close_milestone( $repo, $milestone->number );
 			}
 		}
+	}
+
+	/**
+	 * Checks a milestone about to be released against the release plan of its
+	 * repository, which looks at what the default branch actually contains.
+	 *
+	 * The tag goes on the default branch, so it ships every change merged there
+	 * since the latest tag. Those changes must all belong to this milestone, and
+	 * every pull request in the release notes must be among them.
+	 *
+	 * @param string               $repo       Repository name, including the org.
+	 * @param array<string, array> $candidates The one milestone to release, see
+	 *                                         get_releasable_milestones().
+	 *
+	 * @return bool Whether the release can go ahead. Warns when it can't.
+	 */
+	private function agrees_with_plan( $repo, array $candidates ) {
+		$title = (string) key( $candidates );
+		$plan  = Release_Plan::fetch( $repo );
+
+		if ( Release_Plan::READY !== $plan['status'] ) {
+			WP_CLI::warning( "Skipping milestone '{$title}' as {$repo} needs a maintainer's decision first:" );
+			foreach ( $plan['blockers'] as $blocker ) {
+				WP_CLI::log( "  - {$blocker['message']}" );
+			}
+			return false;
+		}
+
+		if ( $plan['release']['milestone'] !== $title ) {
+			WP_CLI::warning( "Skipping milestone '{$title}' as the changes on the default branch belong to milestone '{$plan['release']['milestone']}'." );
+			return false;
+		}
+
+		$on_branch = array_column( $plan['pull_requests'], 'number' );
+		$in_notes  = array_column( $candidates[ $title ][1]['milestones'][0]['pull_requests'], 'number' );
+		$missing   = array_diff( $in_notes, $on_branch );
+
+		if ( $missing ) {
+			WP_CLI::warning(
+				"Skipping milestone '{$title}' as #" . implode( ', #', $missing )
+				. " was not merged into the default branch since {$plan['latest_tag']}, so the release would not contain it."
+			);
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Finds the open milestones of a repository that can be released, and
+	 * warns about the ones that cannot.
+	 *
+	 * @param string      $repo           Repository name, including the org.
+	 * @param string|null $only_milestone Title of the only milestone to look at.
+	 *
+	 * @return array<string, array> Milestone title => milestone and its notes.
+	 */
+	private function get_releasable_milestones( $repo, $only_milestone ) {
+		$releases = array_map(
+			static function ( $release ) {
+				return $release->tag_name;
+			},
+			GitHub::get_project_releases( $repo )
+		);
+		$tags     = array_map(
+			static function ( $tag ) {
+				return $tag->name;
+			},
+			GitHub::get_tags( $repo )
+		);
+
+		$milestones = GitHub::get_project_milestones( $repo );
+
+		if ( null !== $only_milestone ) {
+			$milestones = array_filter(
+				$milestones,
+				static function ( $milestone ) use ( $only_milestone ) {
+					return $milestone->title === $only_milestone;
+				}
+			);
+
+			if ( ! $milestones ) {
+				WP_CLI::warning( "No open milestone '{$only_milestone}' in {$repo}." );
+			}
+		}
+
+		$candidates = [];
+		foreach ( $milestones as $milestone ) {
+			WP_CLI::log( "Checking milestone '{$milestone->title}'..." );
+
+			$tag_status = Release_Plan::get_tag_status( $milestone->title, $releases, $tags );
+
+			if ( Release_Plan::RELEASED === $tag_status ) {
+				WP_CLI::log( "Found a matching release, skipping milestone '{$milestone->title}'..." );
+				continue;
+			}
+
+			if ( Release_Plan::TAGGED === $tag_status ) {
+				WP_CLI::warning( "Skipping milestone '{$milestone->title}' as it was already tagged. Its pull requests need a new milestone." );
+				continue;
+			}
+
+			if ( Release_Plan::NOT_NEWER === $tag_status ) {
+				WP_CLI::warning( "Skipping milestone '{$milestone->title}' as it is not a version newer than the latest tag." );
+				continue;
+			}
+
+			if ( $this->has_open_items_on_milestone( $repo, $milestone->number ) ) {
+				WP_CLI::warning( "Skipping milestone '{$milestone->title}' as it has open issues/PRs assigned to it." );
+				continue;
+			}
+
+			$notes = Release_Notes::get( $repo, [ $milestone ], 'pull-request' );
+
+			if ( empty( $notes['milestones'][0]['pull_requests'] ) ) {
+				WP_CLI::warning( "Skipping milestone '{$milestone->title}' as it has no merged pull requests." );
+				continue;
+			}
+
+			$candidates[ $milestone->title ] = [ $milestone, $notes ];
+		}
+
+		return $candidates;
 	}
 
 	/**

@@ -162,4 +162,20 @@ class ReleasePlanTest extends TestCase {
 		$this->assertSame( Release_Plan::NEEDS_HUMAN, $plan['status'] );
 		$this->assertSame( [ 'no_version_tag' => [] ], $this->blockers( $plan ) );
 	}
+
+	public function test_tag_status_of_a_milestone(): void {
+		$releases = [ 'v1.0.1' ];
+		$tags     = [ 'v1.0.1', 'v1.0.2', 'v1.0.3' ];
+
+		$this->assertSame( Release_Plan::RELEASED, Release_Plan::get_tag_status( '1.0.1', $releases, $tags ) );
+		$this->assertSame( Release_Plan::TAGGED, Release_Plan::get_tag_status( '1.0.3', $releases, $tags ) );
+		$this->assertSame( Release_Plan::NOT_NEWER, Release_Plan::get_tag_status( '1.0.0', $releases, $tags ) );
+		$this->assertSame( Release_Plan::NOT_NEWER, Release_Plan::get_tag_status( 'Future', $releases, $tags ) );
+		$this->assertSame( Release_Plan::TAGGABLE, Release_Plan::get_tag_status( '1.0.4', $releases, $tags ) );
+		$this->assertSame( Release_Plan::TAGGABLE, Release_Plan::get_tag_status( 'v1.1.0', $releases, $tags ) );
+	}
+
+	public function test_a_first_release_can_be_tagged(): void {
+		$this->assertSame( Release_Plan::TAGGABLE, Release_Plan::get_tag_status( '1.0.0', [], [] ) );
+	}
 }

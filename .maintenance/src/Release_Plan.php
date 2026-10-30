@@ -14,6 +14,11 @@ final class Release_Plan {
 	const READY       = 'ready';
 	const NEEDS_HUMAN = 'needs_human';
 
+	const RELEASED  = 'released';
+	const TAGGED    = 'tagged';
+	const NOT_NEWER = 'not_newer';
+	const TAGGABLE  = 'taggable';
+
 	/**
 	 * Authors of routine pull requests that do not call for a release by
 	 * themselves, unless a maintainer added them to a milestone.
@@ -175,6 +180,37 @@ final class Release_Plan {
 		}
 
 		return $latest;
+	}
+
+	/**
+	 * Tells whether a milestone can still be tagged: not when it has a
+	 * release or a tag already, or when it is not a version newer than the
+	 * latest tag.
+	 *
+	 * @param string   $title    Milestone title.
+	 * @param string[] $releases Tag names of the published releases.
+	 * @param string[] $tags     Names of all tags.
+	 *
+	 * @return string One of RELEASED, TAGGED, NOT_NEWER or TAGGABLE.
+	 */
+	public static function get_tag_status( $title, array $releases, array $tags ) {
+		$version = ltrim( $title, 'v' );
+		$latest  = self::latest_version_tag( $tags );
+
+		if ( self::has_tag( $releases, $version ) ) {
+			return self::RELEASED;
+		}
+
+		if ( self::has_tag( $tags, $version ) ) {
+			return self::TAGGED;
+		}
+
+		if ( ! Bundle::is_version( $version )
+			|| ( null !== $latest && ! version_compare( $version, ltrim( $latest, 'v' ), '>' ) ) ) {
+			return self::NOT_NEWER;
+		}
+
+		return self::TAGGABLE;
 	}
 
 	/**
