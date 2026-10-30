@@ -43,6 +43,10 @@ gh repo fork
 
 As the folders are also symlinked into the Composer `vendor` folder, you will always have the latest changes available when running WP-CLI through the `vendor/bin/wp` executable.
 
+Running `composer install` or `composer update` also fetches every clone and fast-forwards the ones that are clean and on their default branch. Clones with uncommitted changes or on another branch are only fetched, so work in progress is never switched away from.
+
+The `wp maintenance` commands don't need the full environment: any `wp` executable picks them up through `wp-cli.yml` when run from this folder. They authenticate with the GitHub CLI when it is logged in, and with the `GH_TOKEN` or `GITHUB_TOKEN` environment variable otherwise. Run `wp maintenance doctor` to check the setup.
+
 ## Using
 
 This package implements the following commands:
@@ -67,17 +71,17 @@ Lists all contributors to this release.
 wp maintenance contrib-list [<repo>] [<milestone>...] [--release=<version>] [--bundle-ref=<ref>] [--format=<format>]
 ~~~
 
-Run within the main WP-CLI project repository.
+Only authors of merged pull requests count; bots are left out.
 
 **OPTIONS**
 
 	[<repo>]
-		Name of the repository to fetch the release notes for. If no user/org
-		was provided, 'wp-cli' org is assumed. If no repo is passed, release
-		notes for the entire org state since the last bundle release are fetched.
+		Name of the repository to list the contributors for. If no user/org
+		was provided, 'wp-cli' org is assumed. If no repo is passed, the
+		contributors to the entire org since the last bundle release are listed.
 
 	[<milestone>...]
-		Name of one or more milestones to fetch the release notes for. If none
+		Name of one or more milestones to list the contributors for. If none
 		are passed, the current open one is assumed.
 
 	[--release=<version>]
@@ -100,7 +104,46 @@ Run within the main WP-CLI project repository.
 		options:
 		  - markdown
 		  - html
+		  - json
 		---
+
+
+
+### wp maintenance doctor
+
+Checks whether this environment can run the maintenance commands.
+
+~~~
+wp maintenance doctor [--format=<format>]
+~~~
+
+Reports which GitHub credentials are in use and for which account, the
+remaining API rate limit, and whether the tools the maintenance scripts
+rely on are available. Exits with an error code when a check fails.
+
+Credentials come from the GitHub CLI when it is logged in, and from the
+GH_TOKEN or GITHUB_TOKEN environment variables otherwise.
+
+**OPTIONS**
+
+	[--format=<format>]
+		Render output in a specific format. Defaults to a table in a terminal
+		and to JSON otherwise.
+		---
+		options:
+		  - table
+		  - json
+		---
+
+**EXAMPLES**
+
+    $ wp maintenance doctor
+    +-------------+--------+---------------------------------------------+
+    | check       | status | message                                     |
+    +-------------+--------+---------------------------------------------+
+    | credentials | ok     | Using the login of the GitHub CLI (gh).     |
+    | account     | ok     | Authenticated as octocat.                   |
+    ...
 
 
 
@@ -109,7 +152,7 @@ Run within the main WP-CLI project repository.
 Retrieves the milestones that were closed after a given milestone.
 
 ~~~
-wp maintenance milestones-after <repo> <milestone>
+wp maintenance milestones-after <repo> <milestone> [--format=<format>]
 ~~~
 
 **OPTIONS**
@@ -120,6 +163,15 @@ wp maintenance milestones-after <repo> <milestone>
 	<milestone>
 		Milestone to serve as threshold.
 
+	[--format=<format>]
+		Render output in a specific format.
+		---
+		default: list
+		options:
+		  - list
+		  - json
+		---
+
 
 
 ### wp maintenance milestones-since
@@ -127,7 +179,7 @@ wp maintenance milestones-after <repo> <milestone>
 Retrieves the milestones that were closed for a given repository after a
 
 ~~~
-wp maintenance milestones-since <repo> <date>
+wp maintenance milestones-since <repo> <date> [--format=<format>]
 ~~~
 
 specific date threshold.
@@ -139,6 +191,71 @@ specific date threshold.
 
 	<date>
 		Threshold date to filter by.
+
+	[--format=<format>]
+		Render output in a specific format.
+		---
+		default: list
+		options:
+		  - list
+		  - json
+		---
+
+
+
+### wp maintenance release
+
+
+
+~~~
+wp maintenance release
+~~~
+
+
+
+
+
+### wp maintenance release close-released
+
+Close the already released milestones.
+
+~~~
+wp maintenance release close-released [<repo>...] [--bundle] [--all]
+~~~
+
+**OPTIONS**
+
+	[<repo>...]
+		Name(s) of the repository to close the milestones for. If no user/org was
+		provided, 'wp-cli' org is assumed.
+
+	[--bundle]
+		Close the milestones for the entire bundle.
+
+	[--all]
+		Close the milestones for all repositories in the wp-cli organization.
+
+
+
+### wp maintenance release generate
+
+Generate a new release out of an open milestone
+
+~~~
+wp maintenance release generate [<repo>...] [--bundle] [--all]
+~~~
+
+**OPTIONS**
+
+	[<repo>...]
+		Name(s) of the repository to generate a release for. If no user/org was
+		provided, 'wp-cli' org is assumed.
+
+	[--bundle]
+		Generate releases for the entire bundle.
+
+	[--all]
+		Generate releases for all repositories in the wp-cli organization.
 
 
 
@@ -153,11 +270,11 @@ wp maintenance release-date <repo> <release>
 **OPTIONS**
 
 	<repo>
-		Name of the repository to fetch the release notes for. If no user/org
+		Name of the repository to fetch the release date for. If no user/org
 		was provided, 'wp-cli' org is assumed.
 
 	<release>
-		Name of the release to fetch the release notes for.
+		Name of the release to fetch the release date for.
 
 
 
@@ -200,6 +317,7 @@ wp maintenance release-notes [<repo>] [<milestone>...] [--release=<version>] [--
 		options:
 		  - release
 		  - pull-request
+		---
 
 	[--format=<format>]
 		Render output in a specific format.
@@ -208,6 +326,7 @@ wp maintenance release-notes [<repo>] [<milestone>...] [--release=<version>] [--
 		options:
 		  - markdown
 		  - html
+		  - json
 		---
 
 
@@ -228,7 +347,7 @@ label.
 		Name of the repository you want to replace a label for.
 
 	<old-label>
-		Old label to replace on all issues.
+		Old label to replace on all issues and pull requests, open or closed.
 
 	<new-label>
 		New label to replace it with.
