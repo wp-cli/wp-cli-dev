@@ -167,6 +167,17 @@ class DependenciesCommandTest extends GitHub_TestCase {
 		$this->assertSame( 'v2.12.0', $this->printed_audits()[0]['ref'] );
 	}
 
+	public function test_a_lock_with_nothing_to_audit_is_ok_without_asking_composer(): void {
+		$lock = $this->lock();
+		$this->repository( 'wp-cli/dev-only', 'main', [ 'packages' => [] ] + $lock );
+		$this->repository( 'wp-cli/empty', 'main', [ 'packages' => [] ] );
+
+		$this->assertSame( 0, $this->audit( [ 'dev-only', 'empty' ], [ 'dev' => false ] ) );
+
+		$this->assertSame( [], $this->composer_runs );
+		$this->assertSame( [ 'ok', 'ok' ], array_column( $this->printed_audits(), 'status' ) );
+	}
+
 	public function test_repositories_without_a_lock_are_skipped(): void {
 		$this->repository( 'wp-cli/wp-cli', 'main', null );
 		$this->repository( 'wp-cli/wp-cli-bundle', 'main', $this->lock() );

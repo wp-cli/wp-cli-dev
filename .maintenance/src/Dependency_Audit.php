@@ -78,10 +78,38 @@ final class Dependency_Audit {
 			WP_CLI::error( "The composer.lock of {$repo} at {$ref} is not valid JSON." );
 		}
 
-		$runner = self::$runner ? self::$runner : [ __CLASS__, 'run_composer_audit' ];
-		$report = call_user_func( $runner, $composer_json, $lock, $dev );
+		$report = self::audit_lock( $composer_json, $lock, $decoded_lock, $dev );
 
 		return self::assess( $repo, $ref, $sha, $dev, $report, $decoded_lock );
+	}
+
+	/**
+	 * Runs `composer audit` on a lock, unless it has no packages to audit.
+	 * Composer skips such a lock without writing a report, which would look
+	 * like a failure.
+	 */
+	private static function audit_lock( $composer_json, $composer_lock, array $lock, $dev ) {
+		$packages = self::get_locked_packages( $lock );
+
+		if ( ! $dev ) {
+			$packages = array_filter(
+				$packages,
+				static function ( $package ) {
+					return ! $package['dev'];
+				}
+			);
+		}
+
+		if ( ! $packages ) {
+			return [
+				'advisories' => [],
+				'abandoned'  => [],
+			];
+		}
+
+		$runner = self::$runner ? self::$runner : [ __CLASS__, 'run_composer_audit' ];
+
+		return call_user_func( $runner, $composer_json, $composer_lock, $dev );
 	}
 
 	/**
