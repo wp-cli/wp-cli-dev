@@ -1,8 +1,6 @@
 <?php namespace WP_CLI\Maintenance;
 
 use WP_CLI;
-use WP_CLI\Process;
-use WP_CLI\Utils;
 
 /**
  * Checks the composer.lock of a repository for packages with known security
@@ -16,18 +14,6 @@ final class Dependency_Audit {
 	const OK         = 'ok';
 	const ABANDONED  = 'abandoned';
 	const VULNERABLE = 'vulnerable';
-
-	/**
-	 * Environment variables that would change what `composer audit` checks or
-	 * reports, such as COMPOSER_NO_DEV dropping the dev packages, or COMPOSER
-	 * pointing it at another project.
-	 */
-	const COMPOSER_ENV_OVERRIDES = [
-		'COMPOSER',
-		'COMPOSER_AUDIT_ABANDONED',
-		'COMPOSER_NO_AUDIT',
-		'COMPOSER_NO_DEV',
-	];
 
 	/**
 	 * Runs `composer audit`, or null for the real one. Tests swap it out.
@@ -48,6 +34,35 @@ final class Dependency_Audit {
 	 *                    no composer.lock at that ref.
 	 */
 	public static function fetch( $repo, $ref = null, $dev = true ) {
+		$files = self::fetch_files( $repo, $ref );
+
+		if ( null === $files ) {
+			return null;
+		}
+
+		return self::assess(
+			$repo,
+			$files['ref'],
+			$files['sha'],
+			$dev,
+			self::audit_files( $files['composer_json'], $files['composer_lock'], $dev ),
+			$files['lock']
+		);
+	}
+
+	/**
+	 * Gets the composer.json and composer.lock of a repository at a ref.
+	 *
+	 * @param string      $repo Repository name, including the org.
+	 * @param string|null $ref  Branch, tag or commit. Defaults to the default
+	 *                          branch.
+	 *
+	 * @return array{ref: string, sha: string, composer_json: string, composer_lock: string, lock: array}|null
+	 *         Both files as committed, the decoded lock and the commit they
+	 *         were read at, or null when the repository has no composer.lock
+	 *         at that ref.
+	 */
+	public static function fetch_files( $repo, $ref = null ) {
 		if ( null === $ref ) {
 			$ref = GitHub::get_default_branch( $repo );
 		}
@@ -78,33 +93,47 @@ final class Dependency_Audit {
 			WP_CLI::error( "The composer.lock of {$repo} at {$ref} is not valid JSON." );
 		}
 
-		$report = self::audit_lock( $composer_json, $lock, $decoded_lock, $dev );
-
-		return self::assess( $repo, $ref, $sha, $dev, $report, $decoded_lock );
+		return [
+			'ref'           => $ref,
+			'sha'           => $sha,
+			'composer_json' => $composer_json,
+			'composer_lock' => $lock,
+			'lock'          => $decoded_lock,
+		];
 	}
 
 	/**
-	 * Runs `composer audit` on a lock, unless it has no packages to audit.
-	 * Composer skips such a lock without writing a report, which would look
-	 * like a failure.
+	 * Runs `composer audit` against a composer.json and composer.lock, unless
+	 * the lock has no packages to audit. Composer skips such a lock without
+	 * writing a report, which would look like a failure.
+	 *
+	 * @param string $composer_json Contents of composer.json.
+	 * @param string $composer_lock Contents of composer.lock.
+	 * @param bool   $dev           Whether to audit the require-dev packages too.
+	 *
+	 * @return array Decoded JSON report.
 	 */
-	private static function audit_lock( $composer_json, $composer_lock, array $lock, $dev ) {
-		$packages = self::get_locked_packages( $lock );
+	public static function audit_files( $composer_json, $composer_lock, $dev = true ) {
+		$lock = json_decode( $composer_lock, true );
 
-		if ( ! $dev ) {
-			$packages = array_filter(
-				$packages,
-				static function ( $package ) {
-					return ! $package['dev'];
-				}
-			);
-		}
+		if ( is_array( $lock ) ) {
+			$packages = self::get_locked_packages( $lock );
 
-		if ( ! $packages ) {
-			return [
-				'advisories' => [],
-				'abandoned'  => [],
-			];
+			if ( ! $dev ) {
+				$packages = array_filter(
+					$packages,
+					static function ( $package ) {
+						return ! $package['dev'];
+					}
+				);
+			}
+
+			if ( ! $packages ) {
+				return [
+					'advisories' => [],
+					'abandoned'  => [],
+				];
+			}
 		}
 
 		$runner = self::$runner ? self::$runner : [ __CLASS__, 'run_composer_audit' ];
@@ -204,28 +233,6 @@ final class Dependency_Audit {
 	}
 
 	/**
-	 * Builds the environment for `composer audit`: the current one, without
-	 * the variables that change what it checks, and with a Composer home of
-	 * its own, so that no global configuration, such as `audit.ignore`, hides
-	 * an advisory.
-	 *
-	 * @param array<string, string> $env          Current environment.
-	 * @param string                $composer_home Empty directory to use as
-	 *                                             Composer home.
-	 *
-	 * @return array<string, string>
-	 */
-	public static function get_composer_env( array $env, $composer_home ) {
-		foreach ( self::COMPOSER_ENV_OVERRIDES as $variable ) {
-			unset( $env[ $variable ] );
-		}
-
-		$env['COMPOSER_HOME'] = $composer_home;
-
-		return $env;
-	}
-
-	/**
 	 * Runs `composer audit` against a composer.json and composer.lock.
 	 *
 	 * The files are written to a temporary directory and audited from the
@@ -239,37 +246,29 @@ final class Dependency_Audit {
 	 * @return array Decoded JSON report.
 	 */
 	private static function run_composer_audit( $composer_json, $composer_lock, $dev ) {
-		$dir = Utils\get_temp_dir() . uniqid( 'wp-cli-dependency-audit-', true );
-
-		if ( ! mkdir( $dir, 0700 ) || ! mkdir( "{$dir}/home", 0700 )
-			|| false === file_put_contents( "{$dir}/composer.json", $composer_json )
-			|| false === file_put_contents( "{$dir}/composer.lock", $composer_lock ) ) {
-			self::remove_directory( $dir );
-			WP_CLI::error( "Could not write the files to audit to the temporary directory {$dir}." );
-		}
-
 		// --abandoned=report matches the Code Quality workflow, and keeps a
 		// composer.json setting from hiding abandoned packages.
-		$command = 'composer audit --locked --format=json --abandoned=report --no-interaction --no-plugins --no-scripts'
-			. ( $dev ? '' : ' --no-dev' )
-			. ' --working-dir=' . escapeshellarg( $dir );
-
-		$result = Process::create( $command, null, self::get_composer_env( (array) getenv(), "{$dir}/home" ) )->run();
-
-		self::remove_directory( $dir );
-
-		if ( '' !== trim( $result->stderr ) ) {
-			WP_CLI::debug( trim( $result->stderr ), 'dependencies' );
+		$arguments = [ 'audit', '--locked', '--format=json', '--abandoned=report' ];
+		if ( ! $dev ) {
+			$arguments[] = '--no-dev';
 		}
+
+		$result = Composer::run(
+			$arguments,
+			[
+				'composer.json' => $composer_json,
+				'composer.lock' => $composer_lock,
+			]
+		);
 
 		// The exit code flags vulnerable and abandoned packages as well as
 		// failures, so only a report that can be read tells them apart.
-		$report = json_decode( $result->stdout, true );
+		$report = json_decode( $result['stdout'], true );
 
 		if ( ! is_array( $report ) || ! array_key_exists( 'advisories', $report ) ) {
 			WP_CLI::error(
-				"`composer audit` failed (exit code {$result->return_code}). Composer 2.7 or later is needed.\n"
-				. trim( $result->stderr . "\n" . $result->stdout )
+				"`composer audit` failed (exit code {$result['return_code']}). Composer 2.7 or later is needed.\n"
+				. trim( $result['stderr'] . "\n" . $result['stdout'] )
 			);
 		}
 
@@ -334,26 +333,5 @@ final class Dependency_Audit {
 		}
 
 		return strcmp( $a['advisory'], $b['advisory'] );
-	}
-
-	private static function remove_directory( $dir ) {
-		if ( ! is_dir( $dir ) ) {
-			return;
-		}
-
-		$entries = new \RecursiveIteratorIterator(
-			new \RecursiveDirectoryIterator( $dir, \FilesystemIterator::SKIP_DOTS ),
-			\RecursiveIteratorIterator::CHILD_FIRST
-		);
-
-		foreach ( $entries as $entry ) {
-			if ( $entry->isDir() && ! $entry->isLink() ) {
-				rmdir( $entry->getPathname() );
-			} else {
-				unlink( $entry->getPathname() );
-			}
-		}
-
-		rmdir( $dir );
 	}
 }
