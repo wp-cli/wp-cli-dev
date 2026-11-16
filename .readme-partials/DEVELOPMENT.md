@@ -14,3 +14,5 @@ Running `composer install` or `composer update` also fetches every clone and fas
 The `wp maintenance` commands don't need the full environment: any `wp` executable picks them up through `wp-cli.yml` when run from this folder. They authenticate with the GitHub CLI when it is logged in, and with the `GH_TOKEN` or `GITHUB_TOKEN` environment variable otherwise. Run `wp maintenance doctor` to check the setup.
 
 To find out which packages have unreleased changes, run `wp maintenance release plan --bundle`. It makes no changes, and for each package it says whether a milestone is ready for `wp maintenance release generate` or what a maintainer still needs to decide, such as which milestone a merged pull request belongs to.
+
+To check the locked dependencies of the bundle for security advisories, run `wp maintenance dependencies audit`. It runs `composer audit` against the composer.lock as committed, so it reports what the Code Quality workflow fails on, and marks the packages that are only needed for development, as they don't ship in the Phar.

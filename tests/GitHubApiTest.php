@@ -62,6 +62,35 @@ class GitHubApiTest extends GitHub_TestCase {
 		$this->assertEquals( (object) [ 'state' => 'closed' ], $this->sent_data[0] );
 	}
 
+	public function test_a_raw_file_is_fetched_at_a_ref(): void {
+		$lock = [ 'packages' => [ [ 'name' => 'wp-cli/wp-cli' ] ] ];
+		$this->respond( 'GET', 'wp-cli/wp-cli-bundle/v2.12.0/composer.lock', $lock );
+
+		$contents = GitHub::get_raw_file( 'wp-cli/wp-cli-bundle', 'v2.12.0', 'composer.lock' );
+
+		$this->assertSame( $lock, json_decode( (string) $contents, true ) );
+		$this->assertSame( [ 'GET https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/v2.12.0/composer.lock' ], $this->requests );
+	}
+
+	public function test_a_missing_raw_file_is_null(): void {
+		$this->respond( 'GET', 'wp-cli/wp-cli/main/composer.lock', '404: Not Found', 404 );
+
+		$this->assertNull( GitHub::get_raw_file( 'wp-cli/wp-cli', 'main', 'composer.lock' ) );
+	}
+
+	public function test_a_failed_raw_file_request_stops_with_an_error_code(): void {
+		$this->respond( 'GET', 'wp-cli/wp-cli-bundle/main/composer.lock', 'Too Many Requests', 429 );
+
+		try {
+			GitHub::get_raw_file( 'wp-cli/wp-cli-bundle', 'main', 'composer.lock' );
+			$this->fail( 'The request should have failed.' );
+		} catch ( ExitException $exception ) {
+			$this->assertSame( 1, $exception->getCode() );
+		}
+
+		$this->assertStringContainsString( 'Could not fetch https://raw.githubusercontent.com/wp-cli/wp-cli-bundle/main/composer.lock (HTTP code 429)', $this->logger->stderr );
+	}
+
 	public function test_writes_need_credentials(): void {
 		$auth = new ReflectionProperty( GitHub::class, 'auth' );
 		if ( PHP_VERSION_ID < 80100 ) {
