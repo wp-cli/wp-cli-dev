@@ -51,6 +51,8 @@ The `wp maintenance` commands don't need the full environment: any `wp` executab
 
 To find out which packages have unreleased changes, run `wp maintenance release plan --bundle`. It makes no changes, and for each package it says whether a milestone is ready for `wp maintenance release generate` or what a maintainer still needs to decide, such as which milestone a merged pull request belongs to.
 
+To check the locked dependencies of the bundle for security advisories, run `wp maintenance dependencies audit`. It runs `composer audit` against the composer.lock as committed, so it reports what the Code Quality workflow fails on, and marks the packages that are only needed for development, as they don't ship in the Phar.
+
 ## Using
 
 This package implements the following commands:
