@@ -228,4 +228,73 @@ class DependencyUpdateTest extends TestCase {
 		$this->assertStringNotContainsString( 'composer.json:', $body );
 		$this->assertStringNotContainsString( 'Fixes security advisories.', $body );
 	}
+
+	public function test_the_first_fixed_version_skips_ranges_that_follow_on(): void {
+		$affected = '>=5.0.0,<5.1.0|>=5.1.0,<5.4.56|>=6.0.0,<6.4.50';
+
+		$this->assertSame( '5.4.56', Dependency_Update::get_first_fixed_version( $affected, 'v5.0.3' ) );
+		$this->assertSame( '5.4.56', Dependency_Update::get_first_fixed_version( $affected, '5.4.54' ) );
+		$this->assertSame( '6.4.50', Dependency_Update::get_first_fixed_version( $affected, 'v6.0.0' ) );
+		$this->assertSame( '2.0.1', Dependency_Update::get_first_fixed_version( '<2.0.1', '1.9.0' ) );
+		$this->assertSame( '1.2.4', Dependency_Update::get_first_fixed_version( '>1.0 <1.2.4', '1.2.3' ) );
+	}
+
+	public function test_no_first_fixed_version_is_made_up(): void {
+		// Open-ended, inclusive upper bound, unreadable, not affected, branch.
+		$this->assertNull( Dependency_Update::get_first_fixed_version( '>=1.0.0', '1.2.0' ) );
+		$this->assertNull( Dependency_Update::get_first_fixed_version( '<=1.2.0', '1.2.0' ) );
+		$this->assertNull( Dependency_Update::get_first_fixed_version( '^1.0', '1.2.0' ) );
+		$this->assertNull( Dependency_Update::get_first_fixed_version( '<1.0.0', '1.2.0' ) );
+		$this->assertNull( Dependency_Update::get_first_fixed_version( '<1.0.0', 'dev-main' ) );
+		$this->assertNull( Dependency_Update::get_first_fixed_version( null, '1.2.0' ) );
+	}
+
+	public function test_explain_asks_composer_once_per_package_and_version(): void {
+		$calls = [];
+		Dependency_Update::set_why_not_runner(
+			static function ( $composer_json, $composer_lock, $package, $version, $branch ) use ( &$calls ) {
+				$calls[] = [ $package, $version, $branch ];
+
+				return [ "{$package} v{$version} requires php (>=8.1 but 7.2.24 is installed)" ];
+			}
+		);
+
+		$advisories                         = [ $this->advisory( 'symfony/yaml', 'PKSA-1' ), $this->advisory( 'symfony/yaml', 'PKSA-2' ), $this->advisory( 'symfony/config', 'PKSA-3' ) ];
+		$advisories[0]['affected_versions'] = '>=5.4.0,<5.4.56';
+		$advisories[1]['affected_versions'] = '>=5.4.0,<5.4.56';
+
+		try {
+			$explained = Dependency_Update::explain( $advisories, '{}', '{}', 'main' );
+		} finally {
+			Dependency_Update::set_why_not_runner( null );
+		}
+
+		$this->assertSame( [ [ 'symfony/yaml', '5.4.56', 'main' ] ], $calls );
+		$this->assertSame( '5.4.56', $explained[1]['fixed_in'] );
+		$this->assertSame( [ 'symfony/yaml v5.4.56 requires php (>=8.1 but 7.2.24 is installed)' ], $explained[1]['held_back_by'] );
+		$this->assertNull( $explained[2]['fixed_in'] );
+		$this->assertNull( $explained[2]['held_back_by'] );
+	}
+
+	public function test_the_description_says_what_holds_a_fix_back(): void {
+		$held_back                 = $this->advisory( 'symfony/yaml', 'PKSA-1' );
+		$held_back['fixed_in']     = '6.4.50';
+		$held_back['held_back_by'] = [ 'symfony/yaml v6.4.50 requires php (>=8.1 but 7.2.24 is installed)' ];
+		$unclear                   = $this->advisory( 'symfony/config', 'PKSA-2' );
+		$unclear['fixed_in']       = '5.4.56';
+		$unclear['held_back_by']   = [];
+
+		list( , $body ) = Dependency_Update::describe_pull_request( $this->plan( [ $this->change( 'symfony/filesystem' ) ], [], [ $held_back, $unclear ] ) );
+
+		$this->assertStringContainsString(
+			"- symfony/yaml [PKSA-1](https://example.com/PKSA-1): Problem in symfony/yaml\n"
+			. "  Fixed in 6.4.50, which `composer why-not` says is held back by:\n"
+			. "\n"
+			. "  ```\n"
+			. "  symfony/yaml v6.4.50 requires php (>=8.1 but 7.2.24 is installed)\n"
+			. "  ```\n",
+			$body
+		);
+		$this->assertStringContainsString( '  Fixed in 5.4.56. `composer why-not` finds nothing that holds it back; `composer update "symfony/config:5.4.56" --dry-run` may tell more.', $body );
+	}
 }

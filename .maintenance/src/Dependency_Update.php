@@ -35,6 +35,13 @@ final class Dependency_Update {
 	private static $runner;
 
 	/**
+	 * Runs `composer why-not`, or null for the real one. Tests swap it out.
+	 *
+	 * @var callable|null
+	 */
+	private static $why_not_runner;
+
+	/**
 	 * Replaces the `composer update` run, for tests.
 	 *
 	 * @param callable|null $runner Receives the contents of composer.json and
@@ -44,6 +51,19 @@ final class Dependency_Update {
 	 */
 	public static function set_runner( $runner ) {
 		self::$runner = $runner;
+	}
+
+	/**
+	 * Replaces the `composer why-not` run, for tests.
+	 *
+	 * @param callable|null $runner Receives the contents of composer.json and
+	 *                              composer.lock, a package, a version and the
+	 *                              branch, and returns what holds that version
+	 *                              back, as for get_held_back_by(). Null
+	 *                              restores the real run.
+	 */
+	public static function set_why_not_runner( $runner ) {
+		self::$why_not_runner = $runner;
 	}
 
 	/**
@@ -59,7 +79,10 @@ final class Dependency_Update {
 	 *         `branch` is the default branch and `head` the branch for the
 	 *         pull request. `unmatched` lists the given packages that match no
 	 *         locked package. `composer_lock` holds the new lock, or null when
-	 *         the update changes no locked version.
+	 *         the update changes no locked version. Each of the `remaining`
+	 *         advisories also has a `fixed_in` version, the first one that
+	 *         fixes it, and `held_back_by`, what `composer why-not` says keeps
+	 *         that version out, see explain().
 	 */
 	public static function prepare( $repo, array $packages = [] ) {
 		$files = Dependency_Audit::fetch_files( $repo );
@@ -68,6 +91,165 @@ final class Dependency_Update {
 			return null;
 		}
 
+		$plan = self::plan( $repo, $packages, $files );
+
+		$plan['remaining'] = self::explain(
+			$plan['remaining'],
+			$files['composer_json'],
+			null === $plan['composer_lock'] ? $files['composer_lock'] : $plan['composer_lock'],
+			$files['ref']
+		);
+
+		return $plan;
+	}
+
+	/**
+	 * Adds to each advisory the first version that fixes it, and what holds
+	 * that version back.
+	 *
+	 * @param array  $advisories    Advisories, see Dependency_Audit.
+	 * @param string $composer_json Contents of composer.json.
+	 * @param string $composer_lock Contents of the composer.lock they apply to.
+	 * @param string $branch        Branch the files are from.
+	 *
+	 * @return array The advisories, each with `fixed_in`, null when no fixed
+	 *               version is known, and `held_back_by`, the reasons
+	 *               `composer why-not` gives, an empty list when it finds none,
+	 *               or null when it was not asked.
+	 */
+	public static function explain( array $advisories, $composer_json, $composer_lock, $branch ) {
+		$runner  = self::$why_not_runner ? self::$why_not_runner : [ __CLASS__, 'get_held_back_by' ];
+		$reasons = [];
+
+		foreach ( $advisories as $index => $advisory ) {
+			$fixed_in     = self::get_first_fixed_version( isset( $advisory['affected_versions'] ) ? $advisory['affected_versions'] : null, $advisory['version'] );
+			$held_back_by = null;
+
+			if ( null !== $fixed_in ) {
+				$key = "{$advisory['package']} {$fixed_in}";
+
+				if ( ! array_key_exists( $key, $reasons ) ) {
+					$reasons[ $key ] = call_user_func( $runner, $composer_json, $composer_lock, $advisory['package'], $fixed_in, $branch );
+				}
+
+				$held_back_by = $reasons[ $key ];
+			}
+
+			$advisories[ $index ]['fixed_in']     = $fixed_in;
+			$advisories[ $index ]['held_back_by'] = $held_back_by;
+		}
+
+		return $advisories;
+	}
+
+	/**
+	 * Finds the lowest version above a locked one that none of the affected
+	 * ranges of an advisory covers. Advisories often list one range per
+	 * minor version, as in `>=5.3.0,<5.4.0|>=5.4.0,<5.4.56`, so the upper
+	 * bound of one range can be the start of the next.
+	 *
+	 * @param string|null $affected Affected versions, as Composer reports them.
+	 * @param string|null $version  Locked version.
+	 *
+	 * @return string|null The version, or null when none is known to be fixed
+	 *                     or the ranges cannot be read.
+	 */
+	public static function get_first_fixed_version( $affected, $version ) {
+		if ( ! is_string( $affected ) || ! is_string( $version ) || ! preg_match( '/^v?(\d[\w.\-]*)$/i', $version, $match ) ) {
+			return null;
+		}
+
+		$ranges = [];
+		foreach ( explode( '|', $affected ) as $constraint ) {
+			$range = [
+				'lower' => null,
+				'upper' => null,
+			];
+
+			foreach ( preg_split( '/[\s,]+/', trim( $constraint ), -1, PREG_SPLIT_NO_EMPTY ) as $part ) {
+				if ( ! preg_match( '/^(>=|>|<=|<|==|=)?v?(\d[\w.\-]*)$/i', $part, $bound ) ) {
+					return null;
+				}
+
+				if ( '' === $bound[1] || '=' === $bound[1][0] ) {
+					$range['lower'] = [ $bound[2], true ];
+					$range['upper'] = [ $bound[2], true ];
+				} elseif ( '>' === $bound[1][0] ) {
+					$range['lower'] = [ $bound[2], '>=' === $bound[1] ];
+				} else {
+					$range['upper'] = [ $bound[2], '<=' === $bound[1] ];
+				}
+			}
+
+			$ranges[] = $range;
+		}
+
+		$candidate = $match[1];
+		$passes    = count( $ranges ) + 1;
+
+		// Each pass but the last moves past a range, so this many will do.
+		for ( $pass = 0; $pass < $passes; $pass++ ) {
+			$containing = null;
+			foreach ( $ranges as $range ) {
+				if ( self::in_range( $candidate, $range ) ) {
+					$containing = $range;
+					break;
+				}
+			}
+
+			if ( null === $containing ) {
+				return $candidate === $match[1] ? null : $candidate;
+			}
+
+			if ( null === $containing['upper'] || $containing['upper'][1] ) {
+				return null;
+			}
+
+			$candidate = $containing['upper'][0];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Asks `composer why-not` what keeps a version of a package from being
+	 * locked.
+	 *
+	 * @param string $composer_json Contents of composer.json.
+	 * @param string $composer_lock Contents of composer.lock.
+	 * @param string $package       Package name.
+	 * @param string $version       Version that should be locked.
+	 * @param string $branch        Branch the files are from.
+	 *
+	 * @return string[]|null The reasons, one per line, such as
+	 *                       `symfony/yaml v6.4.50 requires php (>=8.1 but 7.2.24 is installed)`;
+	 *                       none when it finds nothing, and null when it fails.
+	 */
+	public static function get_held_back_by( $composer_json, $composer_lock, $package, $version, $branch ) {
+		$result = Composer::run(
+			[ 'why-not', $package, $version, '--locked' ],
+			[
+				'composer.json' => $composer_json,
+				'composer.lock' => $composer_lock,
+			],
+			[],
+			[ 'COMPOSER_ROOT_VERSION' => "dev-{$branch}" ]
+		);
+
+		// It exits with 1 when it finds something that holds the version back.
+		if ( 0 === $result['return_code'] ) {
+			return [];
+		}
+
+		if ( 1 !== $result['return_code'] ) {
+			WP_CLI::debug( "`composer why-not {$package} {$version}` failed (exit code {$result['return_code']}).", 'composer' );
+			return null;
+		}
+
+		return array_values( array_filter( array_map( 'trim', explode( "\n", $result['stdout'] ) ), 'strlen' ) );
+	}
+
+	private static function plan( $repo, array $packages, array $files ) {
 		$before = self::audit( $repo, $files, $files['composer_lock'], $files['lock'] );
 
 		$plan = [
@@ -307,6 +489,10 @@ final class Dependency_Update {
 			$lines[] = '';
 			foreach ( $plan['remaining'] as $advisory ) {
 				$lines[] = self::describe_advisory( $advisory );
+
+				foreach ( self::describe_held_back_by( $advisory ) as $line ) {
+					$lines[] = '' === $line ? '' : "  {$line}";
+				}
 			}
 		}
 
@@ -485,6 +671,43 @@ final class Dependency_Update {
 		}
 
 		return sprintf( '%s (%s)', $package['version'], substr( $package['reference'], 0, 7 ) );
+	}
+
+	/**
+	 * Says what keeps the fix of an advisory out of the lock, as Markdown.
+	 *
+	 * @param array $advisory Advisory, see explain().
+	 *
+	 * @return string[] Lines.
+	 */
+	private static function describe_held_back_by( array $advisory ) {
+		if ( empty( $advisory['fixed_in'] ) ) {
+			return [];
+		}
+
+		$fixed_in = $advisory['fixed_in'];
+
+		if ( null === $advisory['held_back_by'] ) {
+			return [ "Fixed in {$fixed_in}." ];
+		}
+
+		if ( ! $advisory['held_back_by'] ) {
+			return [ "Fixed in {$fixed_in}. `composer why-not` finds nothing that holds it back; `composer update \"{$advisory['package']}:{$fixed_in}\" --dry-run` may tell more." ];
+		}
+
+		return array_merge(
+			[ "Fixed in {$fixed_in}, which `composer why-not` says is held back by:", '', '```' ],
+			$advisory['held_back_by'],
+			[ '```' ]
+		);
+	}
+
+	private static function in_range( $version, array $range ) {
+		if ( null !== $range['lower'] && ! version_compare( $version, $range['lower'][0], $range['lower'][1] ? '>=' : '>' ) ) {
+			return false;
+		}
+
+		return null === $range['upper'] || version_compare( $version, $range['upper'][0], $range['upper'][1] ? '<=' : '<' );
 	}
 
 	private static function describe_advisory( array $advisory ) {

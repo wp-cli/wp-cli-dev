@@ -131,7 +131,9 @@ final class Dependencies_Command {
 	 *
 	 * Without --packages, exits with an error code when advisories are left
 	 * that the update cannot fix, as fixing them needs a change to
-	 * composer.json.
+	 * composer.json. For each of them, it says which version fixes it, and
+	 * what `composer why-not` says holds that version back, both here and in
+	 * the pull request.
 	 *
 	 * Needs Composer 2.7 or later. Works from the files on GitHub, so no clone
 	 * of the repository is needed.
@@ -269,7 +271,22 @@ final class Dependencies_Command {
 
 	private function report_remaining( array $plan ) {
 		foreach ( $plan['remaining'] as $advisory ) {
-			WP_CLI::warning( "{$advisory['package']} {$advisory['version']} is still affected by {$advisory['advisory']}: {$advisory['title']}" );
+			$message = "{$advisory['package']} {$advisory['version']} is still affected by {$advisory['advisory']}: {$advisory['title']}";
+
+			if ( ! empty( $advisory['fixed_in'] ) ) {
+				$message .= "\nIt is fixed in {$advisory['fixed_in']}";
+
+				if ( ! empty( $advisory['held_back_by'] ) ) {
+					$message .= ', which is held back by:';
+					foreach ( $advisory['held_back_by'] as $reason ) {
+						$message .= "\n  {$reason}";
+					}
+				} else {
+					$message .= '.';
+				}
+			}
+
+			WP_CLI::warning( $message );
 		}
 	}
 

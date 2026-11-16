@@ -36,6 +36,13 @@ class DependenciesUpdateCommandTest extends GitHub_TestCase {
 	private $plugin_api = '2.9.0';
 
 	/**
+	 * Calls to the fake `composer why-not`: composer.lock, package, version.
+	 *
+	 * @var array<int, array{0: string, 1: string, 2: string}>
+	 */
+	private $why_nots = [];
+
+	/**
 	 * What the command printed to STDOUT.
 	 *
 	 * @var string
@@ -54,10 +61,11 @@ class DependenciesUpdateCommandTest extends GitHub_TestCase {
 					'advisories' => $affected ? [
 						'symfony/yaml' => [
 							[
-								'advisoryId' => 'PKSA-nktx-f1n1-b4yd',
-								'cve'        => 'CVE-2026-123792',
-								'title'      => 'Exponential and Quadratic Parse Times in the YAML Parser',
-								'link'       => 'https://github.com/symfony/symfony/security/advisories/GHSA-hwfg-qwvh-2wfx',
+								'advisoryId'       => 'PKSA-nktx-f1n1-b4yd',
+								'cve'              => 'CVE-2026-123792',
+								'title'            => 'Exponential and Quadratic Parse Times in the YAML Parser',
+								'link'             => 'https://github.com/symfony/symfony/security/advisories/GHSA-hwfg-qwvh-2wfx',
+								'affectedVersions' => '>=5.0.0,<5.4.0|>=5.4.0,<5.4.56|>=6.0.0,<6.4.50',
 							],
 						],
 					] : [],
@@ -73,11 +81,20 @@ class DependenciesUpdateCommandTest extends GitHub_TestCase {
 				return $this->unfixable ? $composer_lock : $this->lock_file( 'v5.4.56', $this->plugin_api );
 			}
 		);
+
+		Dependency_Update::set_why_not_runner(
+			function ( $composer_json, $composer_lock, $package, $version ) {
+				$this->why_nots[] = [ $composer_lock, $package, $version ];
+
+				return [ "wp-cli/wp-cli-bundle dev-main requires {$package} (5.4.54)" ];
+			}
+		);
 	}
 
 	protected function tear_down(): void {
 		Dependency_Audit::set_runner( null );
 		Dependency_Update::set_runner( null );
+		Dependency_Update::set_why_not_runner( null );
 
 		parent::tear_down();
 	}
@@ -352,7 +369,19 @@ class DependenciesUpdateCommandTest extends GitHub_TestCase {
 
 		$this->assertStringContainsString( 'Updating symfony/yaml changes no locked version of wp-cli/wp-cli-bundle.', $this->logger->stderr );
 		$this->assertStringContainsString( 'symfony/yaml v5.4.54 is still affected by PKSA-nktx-f1n1-b4yd', $this->logger->stderr );
+		$this->assertStringContainsString( "It is fixed in 5.4.56, which is held back by:\n  wp-cli/wp-cli-bundle dev-main requires symfony/yaml (5.4.54)", $this->logger->stderr );
 		$this->assertStringContainsString( 'Fixing them needs a change to composer.json.', $this->logger->stderr );
+		$this->assertCount( 1, $this->why_nots );
+		$this->assertSame( $this->lock( 'v5.4.54' ), json_decode( $this->why_nots[0][0], true ) );
+		$this->assertSame( [ 'symfony/yaml', '5.4.56' ], array_slice( $this->why_nots[0], 1 ) );
+	}
+
+	public function test_fixed_advisories_are_not_explained(): void {
+		$this->bundle();
+
+		$this->assertSame( 0, $this->update( [], [ 'dry-run' => true ] ) );
+
+		$this->assertSame( [], $this->why_nots );
 	}
 
 	public function test_given_packages_are_updated_instead_and_may_leave_advisories(): void {
