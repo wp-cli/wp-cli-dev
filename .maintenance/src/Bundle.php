@@ -1,7 +1,6 @@
 <?php namespace WP_CLI\Maintenance;
 
 use WP_CLI;
-use WP_CLI\Utils;
 
 /**
  * What a wp-cli/wp-cli-bundle release ships, read from its composer.lock.
@@ -191,18 +190,17 @@ final class Bundle {
 	 *                     and that is not fatal.
 	 */
 	public static function get_lock( $ref, $missing_is_fatal = true ) {
-		$url      = sprintf( 'https://raw.githubusercontent.com/%s/%s/composer.lock', self::REPO, $ref );
-		$response = Utils\http_request( 'GET', $url );
+		$lock = GitHub::get_raw_file( self::REPO, $ref, 'composer.lock' );
 
-		if ( 404 === (int) $response->status_code && ! $missing_is_fatal ) {
-			return false;
+		if ( null === $lock ) {
+			if ( ! $missing_is_fatal ) {
+				return false;
+			}
+
+			WP_CLI::error( sprintf( 'Could not fetch https://raw.githubusercontent.com/%s/%s/composer.lock (HTTP code 404)', self::REPO, $ref ) );
 		}
 
-		if ( 200 !== (int) $response->status_code ) {
-			WP_CLI::error( sprintf( 'Could not fetch %s (HTTP code %d)', $url, $response->status_code ) );
-		}
-
-		return json_decode( $response->body, true );
+		return json_decode( $lock, true );
 	}
 
 	/**

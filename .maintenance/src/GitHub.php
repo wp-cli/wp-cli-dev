@@ -439,6 +439,59 @@ class GitHub {
 	}
 
 	/**
+	 * Resolves a branch, tag or commit of a repository to its commit SHA.
+	 *
+	 * @param string $project Repository name, including the org.
+	 * @param string $ref     Branch, tag or commit.
+	 *
+	 * @return string|null Commit SHA, or null when the repository has no such ref.
+	 */
+	public static function get_commit_sha( $project, $ref ) {
+		$result = self::request(
+			self::API_ROOT . "repos/{$project}/commits",
+			[
+				'sha'      => $ref,
+				'per_page' => 1,
+			],
+			'GET',
+			[ 404, 422 ]
+		);
+
+		if ( ! $result || empty( $result[0] ) ) {
+			return null;
+		}
+
+		return $result[0][0]->sha;
+	}
+
+	/**
+	 * Gets the contents of a file of a repository at a ref.
+	 *
+	 * @param string $project Repository name, including the org.
+	 * @param string $ref     Branch, tag or commit.
+	 * @param string $path    Path of the file within the repository.
+	 *
+	 * @return string|null Contents, or null when the ref has no such file
+	 *                     (HTTP 404). Any other failure is fatal, so that a
+	 *                     rate limit or an outage never passes for a missing
+	 *                     file.
+	 */
+	public static function get_raw_file( $project, $ref, $path ) {
+		$url      = sprintf( 'https://raw.githubusercontent.com/%s/%s/%s', $project, $ref, $path );
+		$response = Utils\http_request( 'GET', $url );
+
+		if ( 404 === (int) $response->status_code ) {
+			return null;
+		}
+
+		if ( 200 !== (int) $response->status_code ) {
+			WP_CLI::error( sprintf( 'Could not fetch %s (HTTP code %d)', $url, $response->status_code ) );
+		}
+
+		return $response->body;
+	}
+
+	/**
 	 * Makes a GET request and follows the pagination to collect every item.
 	 *
 	 * @param string $url

@@ -128,7 +128,7 @@ final class Doctor_Command {
 			'git'      => [ 'error', 'Needed to work with the repositories.' ],
 			'gh'       => [ 'warning', 'Optional; without it, credentials come from GH_TOKEN or GITHUB_TOKEN.' ],
 			'jq'       => [ 'warning', 'Needed by the scripts that clone and update the repositories.' ],
-			'composer' => [ 'warning', 'Needed to install the development environment.' ],
+			'composer' => [ 'warning', 'Needed to install the development environment and to audit dependencies.' ],
 		];
 
 		$checks = [];
