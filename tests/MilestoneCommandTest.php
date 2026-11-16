@@ -126,4 +126,8 @@ class MilestoneCommandTest extends GitHub_TestCase {
 	public function test_assign_needs_numbers(): void {
 		$this->assert_refused( [ 'block-command', '1.0.4', 'abc' ], [], "'abc' is not the number" );
 	}
+
+	public function test_assign_checks_every_number_before_any_write(): void {
+		$this->assert_refused( [ 'block-command', '1.0.5', '19', '0' ], [ 'create' => true ], "'0' is not the number" );
+	}
 }

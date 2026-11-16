@@ -40,13 +40,15 @@ final class Milestone_Command {
 	public function assign( $args, $assoc_args ) {
 		$repo    = GitHub::qualify_repo( array_shift( $args ) );
 		$title   = (string) array_shift( $args );
-		$numbers = array_map( 'trim', $args );
 		$create  = Utils\get_flag_value( $assoc_args, 'create', false );
+		$numbers = [];
 
-		foreach ( $numbers as $number ) {
-			if ( ! ctype_digit( ltrim( $number, '#' ) ) ) {
-				WP_CLI::error( "'{$number}' is not the number of an issue or pull request." );
+		foreach ( $args as $arg ) {
+			$number = filter_var( ltrim( trim( $arg ), '#' ), FILTER_VALIDATE_INT, [ 'options' => [ 'min_range' => 1 ] ] );
+			if ( false === $number ) {
+				WP_CLI::error( "'{$arg}' is not the number of an issue or pull request." );
 			}
+			$numbers[] = $number;
 		}
 
 		$milestone = self::find( GitHub::get_project_milestones( $repo, [ 'state' => 'all' ] ), $title );
@@ -63,7 +65,6 @@ final class Milestone_Command {
 		}
 
 		foreach ( $numbers as $number ) {
-			$number = (int) ltrim( $number, '#' );
 			GitHub::set_milestone( $repo, $number, $milestone->number );
 			WP_CLI::log( "Added #{$number} to milestone '{$title}'." );
 		}

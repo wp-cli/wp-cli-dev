@@ -120,18 +120,20 @@ final class Release_Plan {
 	 *                                `number`, `title`, `user` and `milestone`,
 	 *                                and the names of the `files` they change
 	 *                                when known.
-	 * @param object[] $direct_commits Commits on the default branch since the
-	 *                                 latest version tag that no pull request
-	 *                                 brought in, with `sha`, `commit`,
-	 *                                 `author` and `files`.
+	 * @param object[]|null $direct_commits Commits on the default branch
+	 *                                      since the latest version tag that no
+	 *                                      pull request brought in, with `sha`,
+	 *                                      `commit`, `author` and `files`. Null
+	 *                                      when there are too many commits to
+	 *                                      tell.
 	 * @param object[] $open_pull_requests Open pull requests against the
 	 *                                     default branch, with `number`,
 	 *                                     `title`, `user`, `draft` and
 	 *                                     `milestone`.
 	 *
-	 * @return array{repo: string, status: string, latest_tag: string|null, release: array|null, pull_requests: array, blockers: array, direct_commits: array, open_pull_requests: array, open_items: array, open_milestones: array}
+	 * @return array{repo: string, status: string, latest_tag: string|null, release: array|null, pull_requests: array, blockers: array, direct_commits: array|null, open_pull_requests: array, open_items: array, open_milestones: array}
 	 */
-	public static function assess( $repo, array $tags, array $milestones, array $pull_requests, array $direct_commits = [], array $open_pull_requests = [] ) {
+	public static function assess( $repo, array $tags, array $milestones, array $pull_requests, $direct_commits = [], array $open_pull_requests = [] ) {
 		$latest_tag = self::latest_version_tag( $tags );
 		$changes    = array_values( array_filter( $pull_requests, [ __CLASS__, 'is_change' ] ) );
 
@@ -144,7 +146,7 @@ final class Release_Plan {
 			'blockers'      => [],
 		];
 
-		$plan['direct_commits']     = array_values( array_map( [ __CLASS__, 'describe_commit' ], array_filter( $direct_commits, [ __CLASS__, 'is_direct_change' ] ) ) );
+		$plan['direct_commits']     = null === $direct_commits ? null : array_values( array_map( [ __CLASS__, 'describe_commit' ], array_filter( $direct_commits, [ __CLASS__, 'is_direct_change' ] ) ) );
 		$plan['open_pull_requests'] = [];
 		$plan['open_items']         = [];
 		$plan['open_milestones']    = [];
@@ -358,7 +360,7 @@ final class Release_Plan {
 	 * @return bool
 	 */
 	private static function is_direct_change( $commit ) {
-		return ! self::are_routine_files( array_column( (array) $commit->files, 'filename' ) );
+		return ! self::are_routine_files( GitHub::file_names( (array) $commit->files ) );
 	}
 
 	/**

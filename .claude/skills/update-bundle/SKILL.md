@@ -36,8 +36,11 @@ wp maintenance doctor
 wp maintenance release plan --bundle --format=json > "$SCRATCH/plan.json"
 ```
 
-Stop if `doctor` reports a failed check. The plan takes a few hundred API
-requests, so the rate limit `doctor` shows should leave room for that.
+Stop if `doctor` reports a failed check. Stop as well if it reports `gh`,
+`jq` or `composer` as missing: `doctor` only warns about them, but this skill
+needs all three, and finding out in phase 4 would leave tags without lockfile
+updates. The plan takes a few hundred API requests, so the rate limit `doctor`
+shows should leave room for that.
 
 `--bundle` covers every package in the composer.lock of wp-cli/wp-cli-bundle:
 the `*-command` packages, plus wp-cli-tests, php-cli-tools, spyc and
@@ -54,7 +57,7 @@ For each repository, the JSON holds:
 | `blockers` | What `needs_human` is about, by `code`, see below |
 | `open_items` | Issues/PRs still open on the milestone the unreleased changes are on |
 | `open_pull_requests` | Open, non-draft, non-bot PRs that have no open milestone |
-| `direct_commits` | Commits pushed without a PR that change more than those development files |
+| `direct_commits` | Commits pushed without a PR that change more than those development files. `null` when there are too many commits since `latest_tag` for GitHub to compare; check those by hand |
 | `open_milestones` | Open milestones that are a version newer than `latest_tag`, lowest first |
 
 ## Phase 2: Milestone questions
@@ -98,9 +101,11 @@ Questions by blocker or field:
   should go on M?" M is N when R is released in this run, and R otherwise.
   Leaving a PR unchecked leaves it alone. Open PRs never block a release.
 - **`direct_commits`**: "`<repo>` has commits pushed without a PR, which R
-  would ship without mentioning them: `<sha> <message>`. Release anyway?" If a
-  repository has direct commits but no merged PR, `release generate` can't
-  release it. Report it for the maintainer to handle by hand.
+  would ship without mentioning them: `<sha> <message>`. Release anyway?" A
+  *no* excludes the repository from phase 3, even though its plan stays
+  `ready`. Record the exclusion in the log. If a repository has direct commits
+  but no merged PR, `release generate` can't release it. Report it for the
+  maintainer to handle by hand.
 - **`invalid_version`, `no_version_tag`**: no question. List them in the final
   report as needing manual attention.
 
@@ -118,7 +123,9 @@ instead of working around it.
 
 ## Phase 3: Release proposal and approval
 
-Every repository that is now `ready` gets a proposal. Gather all of them
+Every repository that is now `ready` and that the maintainer did not exclude
+in phase 2 gets a proposal. Save its plan JSON in the log as the approved
+snapshot. Gather all of them
 before asking. For each one, preview the notes:
 
 ```bash
@@ -138,7 +145,11 @@ also settles how to merge in phase 4:
    / *Approve the bot's PR and merge; ask a reviewer for mine* / *Leave all
    merges to me*.
 
-Then release each approved package:
+Then release each approved package. Right before each one, re-run
+`wp maintenance release plan <repo> --format=json` and compare it with the
+approved snapshot: the same `latest_tag`, `release`, `pull_requests` and
+`direct_commits`. If anything was merged or pushed since, don't tag it. Ask
+again about that repository once the others are released.
 
 ```bash
 wp maintenance release generate <repo> --milestone=<milestone> --yes
@@ -172,24 +183,40 @@ the `update-framework.yml` workflow of wp-cli/wp-cli-bundle. It runs
 new releases of php-cli-tools and spyc, and opens or updates the
 `update-framework` PR. It runs daily and on every push to the bundle's `main`.
 
-It counts as triggered already when one of its runs started after both the
-latest commit on wp-cli/wp-cli `main` and the last tag from phase 3:
+First note the commit the lockfile should end up with:
+
+```bash
+gh api repos/wp-cli/wp-cli/commits/main --jq .sha
+```
+
+Then pick a run that started after the last tag from phase 3, active or
+finished. If there is none, trigger one:
 
 ```bash
 gh run list --repo wp-cli/wp-cli-bundle --workflow update-framework.yml --limit 5 \
   --json databaseId,event,status,conclusion,createdAt
-gh api repos/wp-cli/wp-cli/commits/main --jq '.commit.committer.date'
-```
-
-Otherwise trigger it, and wait for the run you started:
-
-```bash
 gh workflow run update-framework.yml --repo wp-cli/wp-cli-bundle --ref main
 ```
 
-Then find the PR with `gh pr list --repo wp-cli/wp-cli-bundle --head
-update-framework --state open`. No PR after a successful run means the
-lockfile was up to date already. Otherwise babysit it, see below.
+Either way, wait for that run to finish, and look at nothing else until it
+does. A run still in progress may be rewriting the PR. If it fails, read its
+log and bring the maintainer in.
+
+Once it has succeeded, find the PR with `gh pr list --repo
+wp-cli/wp-cli-bundle --head update-framework --state open`. Check that its
+lockfile pins `wp-cli/wp-cli` at the commit you noted, or main's lockfile
+does when there is no PR:
+
+```bash
+gh api "repos/wp-cli/wp-cli-bundle/contents/composer.lock?ref=<update-framework|main>" \
+  --jq '.content | @base64d | fromjson | .packages[] | select(.name == "wp-cli/wp-cli") | .source.reference'
+```
+
+A run's start time does not prove it saw a commit, since a commit can reach
+`main` after the run started even when it is dated earlier. So if the pinned
+commit differs, trigger one more run and repeat. No PR, with the commit you
+noted on main, means the lockfile was up to date already. Otherwise babysit
+the PR, see below.
 
 ### 4b. Bundle: bundled packages in the bundle's composer.lock
 

@@ -452,12 +452,12 @@ class GitHub {
 	 * @param object   $comparison    Comparison of the tag and the branch.
 	 * @param object[] $pull_requests Pull requests merged since the tag.
 	 *
-	 * @return object[] Commits with their `files`, oldest first. Empty when the
-	 *                  comparison is too long to tell.
+	 * @return object[]|null Commits with their `files`, oldest first. Null when
+	 *                       the comparison is too long to tell.
 	 */
 	public static function get_direct_commits( $project, $comparison, array $pull_requests ) {
 		if ( count( $comparison->commits ) < $comparison->total_commits ) {
-			return [];
+			return null;
 		}
 
 		$merged = [];
@@ -503,7 +503,8 @@ class GitHub {
 	}
 
 	/**
-	 * Gets the names of the files a pull request changes.
+	 * Gets the names of the files a pull request changes, including the
+	 * previous names of renamed files.
 	 *
 	 * @param string $project
 	 * @param int    $number
@@ -511,12 +512,28 @@ class GitHub {
 	 * @return string[]
 	 */
 	public static function get_pull_request_files( $project, $number ) {
-		return array_map(
-			static function ( $file ) {
-				return $file->filename;
-			},
-			self::request_all( self::API_ROOT . "repos/{$project}/pulls/{$number}/files" )
-		);
+		return self::file_names( self::request_all( self::API_ROOT . "repos/{$project}/pulls/{$number}/files" ) );
+	}
+
+	/**
+	 * Gets the names of changed files, including the previous names of
+	 * renamed files.
+	 *
+	 * @param object[] $files Files of a pull request or commit, with
+	 *                        `filename` and maybe `previous_filename`.
+	 *
+	 * @return string[]
+	 */
+	public static function file_names( array $files ) {
+		$names = [];
+		foreach ( $files as $file ) {
+			$names[] = $file->filename;
+			if ( isset( $file->previous_filename ) ) {
+				$names[] = $file->previous_filename;
+			}
+		}
+
+		return $names;
 	}
 
 	/**

@@ -287,4 +287,30 @@ class ReleasePlanTest extends TestCase {
 			$plan['direct_commits']
 		);
 	}
+
+	public function test_moving_code_into_development_files_is_a_change(): void {
+		$renamed = (object) [
+			'sha'    => 'ccc',
+			'commit' => (object) [
+				'message' => 'Move the command',
+				'author'  => (object) [ 'name' => 'Jane Doe' ],
+			],
+			'author' => null,
+			'files'  => [
+				(object) [
+					'filename'          => '.github/Legacy_Command.php',
+					'previous_filename' => 'src/Legacy_Command.php',
+				],
+			],
+		];
+
+		$plan = Release_Plan::assess( 'wp-cli/db-command', [ 'v3.0.1' ], [], [], [ $renamed ] );
+
+		$this->assertSame( [ 'ccc' ], array_column( $plan['direct_commits'], 'sha' ) );
+	}
+
+	public function test_direct_commits_stay_unknown_when_github_cannot_tell(): void {
+		$this->assertNull( Release_Plan::assess( 'wp-cli/db-command', [ 'v3.0.1' ], [], [], null )['direct_commits'] );
+		$this->assertSame( [], Release_Plan::assess( 'wp-cli/db-command', [ 'v3.0.1' ], [], [], [] )['direct_commits'] );
+	}
 }

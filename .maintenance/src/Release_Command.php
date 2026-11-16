@@ -306,8 +306,9 @@ final class Release_Command {
 	 * release without it blocking one: `open_pull_requests` without an open
 	 * milestone, the `open_items` still on the milestone of the unreleased
 	 * changes, `direct_commits` that no pull request brought in and that
-	 * change more than those development files, and the `open_milestones`
-	 * that could still be released.
+	 * change more than those development files (null when there are more
+	 * commits since the latest tag than GitHub compares), and the
+	 * `open_milestones` that could still be released.
 	 *
 	 * Makes no changes.
 	 *
