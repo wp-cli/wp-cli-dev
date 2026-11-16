@@ -25,6 +25,10 @@ const FIXTURES = [
 	'issues'         => 'repos/wp-cli/block-command/issues?milestone=4&state=all',
 	'pull-requests'  => 'repos/wp-cli/block-command/pulls?state=closed&base=main&sort=created&direction=asc&per_page=3',
 	'comparison'     => 'repos/wp-cli/block-command/compare/v1.0.1...v1.0.3',
+	'commit'         => 'repos/wp-cli/block-command/commits/0354f94deba582b6c0549cb2788eb7201ac00d0d',
+	'commit-direct'  => 'repos/wp-cli/block-command/commits/0354f94deba582b6c0549cb2788eb7201ac00d0d/pulls',
+	'commit-pulls'   => 'repos/wp-cli/block-command/commits/0219166f30bb4164e4bfc783ae692e913364e7ff/pulls',
+	'pull-files'     => 'repos/wp-cli/block-command/pulls/17/files',
 	'release'        => 'repos/wp-cli/block-command/releases/tags/v1.0.4',
 	'release-absent' => 'repos/wp-cli/block-command/releases/tags/v0.0.0',
 ];

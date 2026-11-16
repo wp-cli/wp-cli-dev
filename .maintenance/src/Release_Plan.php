@@ -29,11 +29,18 @@ final class Release_Plan {
 	];
 
 	/**
+	 * Files that only matter for developing a package, not for using it:
+	 * the files synced from wp-cli/.github and the generated README.
+	 */
+	const ROUTINE_PATHS = '#^(\.github/|\.actrc$|\.editorconfig$|AGENTS\.md$|README\.md$)#';
+
+	/**
 	 * Gathers what the plan needs to know about a repository from GitHub.
 	 *
 	 * @param string $repo Repository name, including the org.
 	 *
-	 * @return array Plan, see assess().
+	 * @return array Plan, see assess(), with the `open_items` of the
+	 *               milestones the unreleased changes are on.
 	 */
 	public static function fetch( $repo ) {
 		$tags       = array_map(
@@ -44,13 +51,60 @@ final class Release_Plan {
 		);
 		$milestones = GitHub::get_project_milestones( $repo, [ 'state' => 'all' ] );
 		$latest_tag = self::latest_version_tag( $tags );
+		$branch     = GitHub::get_default_branch( $repo );
 
-		$pull_requests = [];
+		$pull_requests  = [];
+		$direct_commits = [];
 		if ( null !== $latest_tag ) {
-			$pull_requests = GitHub::get_pull_requests_merged_since( $repo, $latest_tag, GitHub::get_default_branch( $repo ) );
+			$comparison    = GitHub::get_comparison( $repo, $latest_tag, $branch );
+			$pull_requests = GitHub::get_pull_requests_merged_since( $repo, $latest_tag, $branch, $comparison );
+
+			// Only a pull request without a milestone can be routine because
+			// of the files it changes, see is_change().
+			foreach ( $pull_requests as $pull_request ) {
+				if ( empty( $pull_request->milestone ) && ! self::is_routine_author( $pull_request ) ) {
+					$pull_request->files = GitHub::get_pull_request_files( $repo, $pull_request->number );
+				}
+			}
+
+			$direct_commits = GitHub::get_direct_commits( $repo, $comparison, $pull_requests );
 		}
 
-		return self::assess( $repo, $tags, $milestones, $pull_requests );
+		$plan = self::assess(
+			$repo,
+			$tags,
+			$milestones,
+			$pull_requests,
+			$direct_commits,
+			GitHub::get_open_pull_requests( $repo, $branch )
+		);
+
+		$targets = array_filter( array_column( $plan['pull_requests'], 'milestone' ) );
+		foreach ( $milestones as $milestone ) {
+			if ( 'open' !== $milestone->state || $milestone->open_issues < 1 || ! in_array( $milestone->title, $targets, true ) ) {
+				continue;
+			}
+
+			$items = GitHub::get_issues(
+				$repo,
+				[
+					'milestone' => $milestone->number,
+					'state'     => 'open',
+				]
+			);
+
+			foreach ( $items as $item ) {
+				$plan['open_items'][] = [
+					'number'    => $item->number,
+					'title'     => $item->title,
+					'type'      => empty( $item->pull_request ) ? 'issue' : 'pull_request',
+					'draft'     => ! empty( $item->draft ),
+					'milestone' => $milestone->title,
+				];
+			}
+		}
+
+		return $plan;
 	}
 
 	/**
@@ -63,11 +117,21 @@ final class Release_Plan {
 	 *                                `title`, `state` and `open_issues`.
 	 * @param object[] $pull_requests Pull requests merged into the default
 	 *                                branch since the latest version tag, with
-	 *                                `number`, `title`, `user` and `milestone`.
+	 *                                `number`, `title`, `user` and `milestone`,
+	 *                                and the names of the `files` they change
+	 *                                when known.
+	 * @param object[] $direct_commits Commits on the default branch since the
+	 *                                 latest version tag that no pull request
+	 *                                 brought in, with `sha`, `commit`,
+	 *                                 `author` and `files`.
+	 * @param object[] $open_pull_requests Open pull requests against the
+	 *                                     default branch, with `number`,
+	 *                                     `title`, `user`, `draft` and
+	 *                                     `milestone`.
 	 *
-	 * @return array{repo: string, status: string, latest_tag: string|null, release: array|null, pull_requests: array, blockers: array}
+	 * @return array{repo: string, status: string, latest_tag: string|null, release: array|null, pull_requests: array, blockers: array, direct_commits: array, open_pull_requests: array, open_items: array, open_milestones: array}
 	 */
-	public static function assess( $repo, array $tags, array $milestones, array $pull_requests ) {
+	public static function assess( $repo, array $tags, array $milestones, array $pull_requests, array $direct_commits = [], array $open_pull_requests = [] ) {
 		$latest_tag = self::latest_version_tag( $tags );
 		$changes    = array_values( array_filter( $pull_requests, [ __CLASS__, 'is_change' ] ) );
 
@@ -79,6 +143,41 @@ final class Release_Plan {
 			'pull_requests' => array_map( [ __CLASS__, 'describe_pull_request' ], $changes ),
 			'blockers'      => [],
 		];
+
+		$plan['direct_commits']     = array_values( array_map( [ __CLASS__, 'describe_commit' ], array_filter( $direct_commits, [ __CLASS__, 'is_direct_change' ] ) ) );
+		$plan['open_pull_requests'] = [];
+		$plan['open_items']         = [];
+		$plan['open_milestones']    = [];
+
+		foreach ( $open_pull_requests as $pull_request ) {
+			if ( ! empty( $pull_request->draft ) || self::is_routine_author( $pull_request ) ) {
+				continue;
+			}
+
+			if ( ! empty( $pull_request->milestone )
+				&& 'open' === $pull_request->milestone->state
+				&& ! self::has_tag( $tags, $pull_request->milestone->title ) ) {
+				continue;
+			}
+
+			$plan['open_pull_requests'][] = self::describe_pull_request( $pull_request );
+		}
+
+		foreach ( $milestones as $milestone ) {
+			if ( 'open' === $milestone->state && self::TAGGABLE === self::get_tag_status( $milestone->title, [], $tags ) ) {
+				$plan['open_milestones'][] = [
+					'title'       => $milestone->title,
+					'open_issues' => $milestone->open_issues,
+				];
+			}
+		}
+
+		usort(
+			$plan['open_milestones'],
+			static function ( $a, $b ) {
+				return version_compare( ltrim( $a['title'], 'v' ), ltrim( $b['title'], 'v' ) );
+			}
+		);
 
 		if ( null === $latest_tag ) {
 			$plan['status']     = self::NEEDS_HUMAN;
@@ -228,16 +327,70 @@ final class Release_Plan {
 	}
 
 	/**
-	 * Checks whether a merged pull request calls for a release. Routine
-	 * automated updates only do when a maintainer put them on a milestone.
+	 * Checks whether a merged pull request calls for a release. One by a
+	 * maintainer always does when they put it on a milestone. Otherwise,
+	 * routine automated updates and changes to development files only, such
+	 * as workflows or the README, do not.
 	 *
-	 * @param object $pull_request Pull request with `user` and `milestone`.
+	 * @param object $pull_request Pull request with `user` and `milestone`,
+	 *                             and `files` when known.
 	 *
 	 * @return bool
 	 */
 	private static function is_change( $pull_request ) {
-		return ! empty( $pull_request->milestone )
-			|| ! in_array( $pull_request->user->login, self::ROUTINE_AUTHORS, true );
+		if ( ! empty( $pull_request->milestone ) ) {
+			return true;
+		}
+
+		if ( self::is_routine_author( $pull_request ) ) {
+			return false;
+		}
+
+		return ! isset( $pull_request->files ) || ! self::are_routine_files( $pull_request->files );
+	}
+
+	/**
+	 * Checks whether a commit that no pull request brought in changes more
+	 * than development files.
+	 *
+	 * @param object $commit Commit with `files`.
+	 *
+	 * @return bool
+	 */
+	private static function is_direct_change( $commit ) {
+		return ! self::are_routine_files( array_column( (array) $commit->files, 'filename' ) );
+	}
+
+	/**
+	 * Checks whether a list of files only holds development files, see
+	 * ROUTINE_PATHS.
+	 *
+	 * @param string[] $files File names, relative to the repository root.
+	 *
+	 * @return bool
+	 */
+	public static function are_routine_files( array $files ) {
+		foreach ( $files as $file ) {
+			if ( ! preg_match( self::ROUTINE_PATHS, $file ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private static function is_routine_author( $pull_request ) {
+		return in_array( $pull_request->user->login, self::ROUTINE_AUTHORS, true );
+	}
+
+	private static function describe_commit( $commit ) {
+		$message = explode( "\n", $commit->commit->message, 2 );
+
+		return [
+			'sha'     => $commit->sha,
+			'message' => $message[0],
+			'author'  => empty( $commit->author ) ? $commit->commit->author->name : $commit->author->login,
+		];
 	}
 
 	private static function describe_pull_request( $pull_request ) {

@@ -370,13 +370,15 @@ class GitHub {
 	 * @param string $project
 	 * @param string $tag    Tag to compare the branch against.
 	 * @param string $branch Branch the pull requests were merged into.
+	 * @param object|null $comparison Comparison of the tag and the branch, when
+	 *                                fetched already.
 	 *
 	 * @return array Pull requests, most recently updated first.
 	 */
-	public static function get_pull_requests_merged_since( $project, $tag, $branch ) {
-		list( $comparison ) = self::request(
-			self::API_ROOT . "repos/{$project}/compare/" . rawurlencode( $tag ) . '...' . rawurlencode( $branch )
-		);
+	public static function get_pull_requests_merged_since( $project, $tag, $branch, $comparison = null ) {
+		if ( null === $comparison ) {
+			$comparison = self::get_comparison( $project, $tag, $branch );
+		}
 
 		$commits = [];
 		foreach ( $comparison->commits as $commit ) {
@@ -423,6 +425,132 @@ class GitHub {
 		}
 
 		return $pull_requests;
+	}
+
+	/**
+	 * Compares two refs of a repository.
+	 *
+	 * @param string $project
+	 * @param string $base
+	 * @param string $head
+	 *
+	 * @return object Comparison, listing at most 250 of its commits.
+	 */
+	public static function get_comparison( $project, $base, $head ) {
+		list( $comparison ) = self::request(
+			self::API_ROOT . "repos/{$project}/compare/" . rawurlencode( $base ) . '...' . rawurlencode( $head )
+		);
+
+		return $comparison;
+	}
+
+	/**
+	 * Gets the commits on a branch since a given tag that no pull request
+	 * brought in, such as the files synced from wp-cli/.github.
+	 *
+	 * @param string   $project
+	 * @param object   $comparison    Comparison of the tag and the branch.
+	 * @param object[] $pull_requests Pull requests merged since the tag.
+	 *
+	 * @return object[] Commits with their `files`, oldest first. Empty when the
+	 *                  comparison is too long to tell.
+	 */
+	public static function get_direct_commits( $project, $comparison, array $pull_requests ) {
+		if ( count( $comparison->commits ) < $comparison->total_commits ) {
+			return [];
+		}
+
+		$merged = [];
+		foreach ( $pull_requests as $pull_request ) {
+			$merged[ $pull_request->merge_commit_sha ] = true;
+		}
+
+		$direct = [];
+		foreach ( $comparison->commits as $commit ) {
+			if ( isset( $merged[ $commit->sha ] ) ) {
+				continue;
+			}
+
+			// Commits of a pull request that was merged with a merge commit
+			// are listed as well, and belong to that pull request.
+			list( $associated ) = self::request( self::API_ROOT . "repos/{$project}/commits/{$commit->sha}/pulls" );
+			if ( $associated ) {
+				continue;
+			}
+
+			list( $direct[] ) = self::request( self::API_ROOT . "repos/{$project}/commits/{$commit->sha}" );
+		}
+
+		return $direct;
+	}
+
+	/**
+	 * Gets the open pull requests against a branch.
+	 *
+	 * @param string $project
+	 * @param string $branch
+	 *
+	 * @return object[]
+	 */
+	public static function get_open_pull_requests( $project, $branch ) {
+		return self::request_all(
+			self::API_ROOT . "repos/{$project}/pulls",
+			[
+				'state' => 'open',
+				'base'  => $branch,
+			]
+		);
+	}
+
+	/**
+	 * Gets the names of the files a pull request changes.
+	 *
+	 * @param string $project
+	 * @param int    $number
+	 *
+	 * @return string[]
+	 */
+	public static function get_pull_request_files( $project, $number ) {
+		return array_map(
+			static function ( $file ) {
+				return $file->filename;
+			},
+			self::request_all( self::API_ROOT . "repos/{$project}/pulls/{$number}/files" )
+		);
+	}
+
+	/**
+	 * Creates a milestone.
+	 *
+	 * @param string $project
+	 * @param string $title
+	 *
+	 * @return object
+	 */
+	public static function create_milestone( $project, $title ) {
+		list( $milestone ) = self::request(
+			self::API_ROOT . "repos/{$project}/milestones",
+			[ 'title' => (string) $title ],
+			'POST'
+		);
+
+		return $milestone;
+	}
+
+	/**
+	 * Puts an issue or pull request on a milestone, replacing the one it was
+	 * on.
+	 *
+	 * @param string $project
+	 * @param int    $issue
+	 * @param int    $milestone Milestone number.
+	 */
+	public static function set_milestone( $project, $issue, $milestone ) {
+		self::request(
+			self::API_ROOT . "repos/{$project}/issues/{$issue}",
+			[ 'milestone' => (int) $milestone ],
+			'PATCH'
+		);
 	}
 
 	/**
