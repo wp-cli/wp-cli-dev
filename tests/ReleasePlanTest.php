@@ -178,4 +178,139 @@ class ReleasePlanTest extends TestCase {
 	public function test_a_first_release_can_be_tagged(): void {
 		$this->assertSame( Release_Plan::TAGGABLE, Release_Plan::get_tag_status( '1.0.0', [], [] ) );
 	}
+
+	public function test_pull_requests_that_only_change_development_files_need_no_release(): void {
+		$workflow        = $this->pull_request( 60 );
+		$workflow->files = [ '.github/workflows/testing.yml', 'README.md' ];
+		$code            = $this->pull_request( 61 );
+		$code->files     = [ '.github/workflows/testing.yml', 'src/Eval_Command.php' ];
+		$planned         = $this->pull_request( 62, '3.0.2' );
+		$planned->files  = [ 'README.md' ];
+
+		$plan = Release_Plan::assess( 'wp-cli/eval-command', [ 'v3.0.1' ], [ $this->milestone( '3.0.2' ) ], [ $workflow ] );
+		$this->assertSame( Release_Plan::UP_TO_DATE, $plan['status'] );
+
+		$plan = Release_Plan::assess( 'wp-cli/eval-command', [ 'v3.0.1' ], [ $this->milestone( '3.0.2' ) ], [ $workflow, $code, $planned ] );
+		$this->assertSame( [ 61, 62 ], array_column( $plan['pull_requests'], 'number' ) );
+		$this->assertSame( [ 'no_milestone' => [ 61 ] ], $this->blockers( $plan ) );
+	}
+
+	public function test_routine_files(): void {
+		$this->assertTrue( Release_Plan::are_routine_files( [ '.github/dependabot.yml', '.actrc', '.editorconfig', 'AGENTS.md', 'README.md' ] ) );
+		$this->assertFalse( Release_Plan::are_routine_files( [ 'README.md', 'composer.json' ] ) );
+		$this->assertFalse( Release_Plan::are_routine_files( [ 'features/README.md' ] ) );
+	}
+
+	public function test_lists_the_open_pull_requests_that_need_a_milestone(): void {
+		$closed             = $this->pull_request( 70, '3.0.1' );
+		$closed->milestone  = (object) [
+			'title' => '3.0.1',
+			'state' => 'closed',
+		];
+		$tagged             = $this->pull_request( 71 );
+		$tagged->milestone  = (object) [
+			'title' => '3.0.0',
+			'state' => 'open',
+		];
+		$planned            = $this->pull_request( 72 );
+		$planned->milestone = (object) [
+			'title' => '3.0.2',
+			'state' => 'open',
+		];
+		$draft              = $this->pull_request( 73 );
+		$draft->draft       = true;
+
+		$plan = Release_Plan::assess(
+			'wp-cli/db-command',
+			[ 'v3.0.0', 'v3.0.1' ],
+			[],
+			[],
+			[],
+			[ $closed, $tagged, $planned, $draft, $this->pull_request( 74 ), $this->pull_request( 75, null, 'dependabot[bot]' ) ]
+		);
+
+		$this->assertSame( [ 70, 71, 74 ], array_column( $plan['open_pull_requests'], 'number' ) );
+		$this->assertSame( Release_Plan::UP_TO_DATE, $plan['status'] );
+	}
+
+	public function test_lists_the_open_milestones_that_can_still_be_released(): void {
+		$plan = Release_Plan::assess(
+			'wp-cli/db-command',
+			[ 'v3.0.1' ],
+			[
+				$this->milestone( '3.1.0', 'open', 2 ),
+				$this->milestone( '3.0.1' ),
+				$this->milestone( '3.0.2' ),
+				$this->milestone( '3.0.0', 'closed' ),
+				$this->milestone( 'Future' ),
+			],
+			[]
+		);
+
+		$this->assertSame( [ '3.0.2', '3.1.0' ], array_column( $plan['open_milestones'], 'title' ) );
+	}
+
+	public function test_commits_without_a_pull_request_are_listed_unless_routine(): void {
+		$commit = static function ( $sha, array $files ) {
+			return (object) [
+				'sha'    => $sha,
+				'commit' => (object) [
+					'message' => "Commit {$sha}\n\nWith a body.",
+					'author'  => (object) [ 'name' => 'Jane Doe' ],
+				],
+				'author' => null,
+				'files'  => array_map(
+					static function ( $file ) {
+						return (object) [ 'filename' => $file ];
+					},
+					$files
+				),
+			];
+		};
+
+		$plan = Release_Plan::assess(
+			'wp-cli/db-command',
+			[ 'v3.0.1' ],
+			[],
+			[],
+			[ $commit( 'aaa', [ '.github/workflows/testing.yml' ] ), $commit( 'bbb', [ 'src/DB_Command.php' ] ) ]
+		);
+
+		$this->assertSame(
+			[
+				[
+					'sha'     => 'bbb',
+					'message' => 'Commit bbb',
+					'author'  => 'Jane Doe',
+				],
+			],
+			$plan['direct_commits']
+		);
+	}
+
+	public function test_moving_code_into_development_files_is_a_change(): void {
+		$renamed = (object) [
+			'sha'    => 'ccc',
+			'commit' => (object) [
+				'message' => 'Move the command',
+				'author'  => (object) [ 'name' => 'Jane Doe' ],
+			],
+			'author' => null,
+			'files'  => [
+				(object) [
+					'filename'          => '.github/Legacy_Command.php',
+					'previous_filename' => 'src/Legacy_Command.php',
+				],
+			],
+		];
+
+		$plan = Release_Plan::assess( 'wp-cli/db-command', [ 'v3.0.1' ], [], [], [ $renamed ] );
+
+		$this->assertSame( [ 'ccc' ], array_column( $plan['direct_commits'], 'sha' ) );
+	}
+
+	public function test_direct_commits_stay_unknown_when_github_cannot_tell(): void {
+		$this->assertNull( Release_Plan::assess( 'wp-cli/db-command', [ 'v3.0.1' ], [], [], null )['direct_commits'] );
+		$this->assertSame( [], Release_Plan::assess( 'wp-cli/db-command', [ 'v3.0.1' ], [], [], [] )['direct_commits'] );
+	}
 }

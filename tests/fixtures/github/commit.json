@@ -1,0 +1,106 @@
+{
+    "request": "GET /repos/wp-cli/block-command/commits/0354f94deba582b6c0549cb2788eb7201ac00d0d",
+    "status": 200,
+    "headers": {},
+    "body": {
+        "sha": "0354f94deba582b6c0549cb2788eb7201ac00d0d",
+        "node_id": "C_kwDOQl0QSdoAKDAzNTRmOTRkZWJhNTgyYjZjMDU0OWNiMjc4OGViNzIwMWFjMDBkMGQ",
+        "commit": {
+            "author": {
+                "name": "swissspidy",
+                "email": "swissspidy@users.noreply.github.com",
+                "date": "2026-04-22T08:45:37Z"
+            },
+            "committer": {
+                "name": "swissspidy",
+                "email": "swissspidy@users.noreply.github.com",
+                "date": "2026-04-22T08:45:37Z"
+            },
+            "message": "Update file(s) from wp-cli/.github",
+            "tree": {
+                "sha": "18e32df3e1da81ba076caf85d3e19913563fb830",
+                "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/18e32df3e1da81ba076caf85d3e19913563fb830"
+            },
+            "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/0354f94deba582b6c0549cb2788eb7201ac00d0d",
+            "comment_count": 0,
+            "verification": {
+                "verified": false,
+                "reason": "unsigned",
+                "signature": null,
+                "payload": null,
+                "verified_at": null
+            }
+        },
+        "url": "https://api.github.com/repos/wp-cli/block-command/commits/0354f94deba582b6c0549cb2788eb7201ac00d0d",
+        "html_url": "https://github.com/wp-cli/block-command/commit/0354f94deba582b6c0549cb2788eb7201ac00d0d",
+        "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/0354f94deba582b6c0549cb2788eb7201ac00d0d/comments",
+        "author": {
+            "login": "swissspidy",
+            "id": 841956,
+            "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+            "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/swissspidy",
+            "html_url": "https://github.com/swissspidy",
+            "followers_url": "https://api.github.com/users/swissspidy/followers",
+            "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+            "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+            "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+            "repos_url": "https://api.github.com/users/swissspidy/repos",
+            "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+        },
+        "committer": {
+            "login": "swissspidy",
+            "id": 841956,
+            "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+            "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/swissspidy",
+            "html_url": "https://github.com/swissspidy",
+            "followers_url": "https://api.github.com/users/swissspidy/followers",
+            "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+            "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+            "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+            "repos_url": "https://api.github.com/users/swissspidy/repos",
+            "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+        },
+        "parents": [
+            {
+                "sha": "259b8da86f84a386e262189be3f4b912183f563d",
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/259b8da86f84a386e262189be3f4b912183f563d",
+                "html_url": "https://github.com/wp-cli/block-command/commit/259b8da86f84a386e262189be3f4b912183f563d"
+            }
+        ],
+        "stats": {
+            "total": 8,
+            "additions": 7,
+            "deletions": 1
+        },
+        "files": [
+            {
+                "sha": "bba7cddcd9ac914b48344f1e75ef8e772a61d141",
+                "filename": ".github/workflows/copilot-setup-steps.yml",
+                "status": "modified",
+                "additions": 7,
+                "deletions": 1,
+                "changes": 8,
+                "blob_url": "https://github.com/wp-cli/block-command/blob/0354f94deba582b6c0549cb2788eb7201ac00d0d/.github%2Fworkflows%2Fcopilot-setup-steps.yml",
+                "raw_url": "https://github.com/wp-cli/block-command/raw/0354f94deba582b6c0549cb2788eb7201ac00d0d/.github%2Fworkflows%2Fcopilot-setup-steps.yml",
+                "contents_url": "https://api.github.com/repos/wp-cli/block-command/contents/.github%2Fworkflows%2Fcopilot-setup-steps.yml?ref=0354f94deba582b6c0549cb2788eb7201ac00d0d",
+                "patch": "@@ -9,15 +9,21 @@ on:\n     paths:\n       - .github/workflows/copilot-setup-steps.yml\n \n+permissions:\n+  contents: read\n+\n jobs:\n   copilot-setup-steps:\n+    name: Setup environment\n     runs-on: ubuntu-latest\n     permissions:\n       contents: read\n \n     steps:\n       - name: Checkout code\n         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6\n+        with:\n+          persist-credentials: false\n \n       - name: Check existence of composer.json file\n         id: check_composer_file\n@@ -36,6 +42,6 @@ jobs:\n \n       - name: Install Composer dependencies & cache dependencies\n         if: steps.check_composer_file.outputs.files_exists == 'true'\n-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4\n+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0\n         env:\n           COMPOSER_ROOT_VERSION: dev-${{ github.event.repository.default_branch }}"
+            }
+        ]
+    }
+}

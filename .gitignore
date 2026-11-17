@@ -1,10 +1,15 @@
 # Exclude all subfolders...
 /*/
 # except for the following.
+!/.claude/
 !/.github/
 !/.maintenance/
 !/.readme-partials/
 !/tests/
+
+# Only the skills of .claude/ are shared.
+/.claude/*
+!/.claude/skills/
 
 composer.lock
 *.log

@@ -299,7 +299,16 @@ final class Release_Command {
 	 * which milestone a pull request belongs to. The blockers say what.
 	 *
 	 * Routine pull requests by Dependabot or GitHub Actions only count when
-	 * they are on a milestone.
+	 * they are on a milestone, and so do pull requests that only change
+	 * workflows, the README or other files synced from wp-cli/.github.
+	 *
+	 * The JSON also lists what a maintainer may want to look at before a
+	 * release without it blocking one: `open_pull_requests` without an open
+	 * milestone, the `open_items` still on the milestone of the unreleased
+	 * changes, `direct_commits` that no pull request brought in and that
+	 * change more than those development files (null when there are more
+	 * commits since the latest tag than GitHub compares), and the
+	 * `open_milestones` that could still be released.
 	 *
 	 * Makes no changes.
 	 *

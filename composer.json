@@ -279,6 +279,8 @@
             "maintenance",
             "maintenance contrib-list",
             "maintenance doctor",
+            "maintenance milestone",
+            "maintenance milestone assign",
             "maintenance milestones-after",
             "maintenance milestones-since",
             "maintenance release",

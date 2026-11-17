@@ -191,4 +191,27 @@ class GitHubApiTest extends GitHub_TestCase {
 			]
 		);
 	}
+
+	public function test_direct_commits_are_unknown_for_a_truncated_comparison(): void {
+		$comparison                = $this->fixture( 'comparison' );
+		$comparison->total_commits = 300;
+
+		$this->assertNull( GitHub::get_direct_commits( 'wp-cli/block-command', $comparison, [] ) );
+		$this->assertSame( [], $this->requests );
+	}
+
+	public function test_file_names_include_the_previous_name_of_a_renamed_file(): void {
+		$this->assertSame(
+			[ 'src/New.php', '.github/new.yml', 'src/Old.php' ],
+			GitHub::file_names(
+				[
+					(object) [ 'filename' => 'src/New.php' ],
+					(object) [
+						'filename'          => '.github/new.yml',
+						'previous_filename' => 'src/Old.php',
+					],
+				]
+			)
+		);
+	}
 }
