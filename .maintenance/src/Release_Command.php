@@ -149,19 +149,8 @@ final class Release_Command {
 				WP_CLI::log( "{$title} ({$tag})\n{$release_notes}" );
 				WP_CLI::log( '-----' );
 
-				if ( ! $confirmed ) {
-					fwrite( STDOUT, 'Is the above correct? [y/n] ' );
-					$answer = fgets( STDIN );
-					if ( false === $answer ) {
-						WP_CLI::error( 'No answer received. Run this command in an interactive terminal, or pass --yes.' );
-					}
-					// A piped answer is not echoed, so end the prompt's line here.
-					if ( ! stream_isatty( STDIN ) ) {
-						fwrite( STDOUT, "\n" );
-					}
-					if ( 'y' !== strtolower( trim( $answer ) ) ) {
-						continue;
-					}
+				if ( ! $confirmed && ! Prompt::confirm( 'Is the above correct?' ) ) {
+					continue;
 				}
 
 				$default_branch = GitHub::get_default_branch( $repo );

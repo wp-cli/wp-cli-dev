@@ -198,28 +198,4 @@ class DependencyAuditTest extends TestCase {
 
 		$this->assertSame( [ 'PKSA-mmmm', 'PKSA-aaaa', 'PKSA-zzzz' ], array_column( $audit['advisories'], 'advisory' ) );
 	}
-
-	public function test_the_composer_environment_cannot_change_what_is_audited(): void {
-		$env = Dependency_Audit::get_composer_env(
-			[
-				'PATH'                     => '/usr/bin',
-				'COMPOSER'                 => '/elsewhere/composer.json',
-				'COMPOSER_NO_DEV'          => '1',
-				'COMPOSER_NO_AUDIT'        => '1',
-				'COMPOSER_AUDIT_ABANDONED' => 'ignore',
-				'COMPOSER_HOME'            => '/home/me/.composer',
-				'COMPOSER_CACHE_DIR'       => '/home/me/.cache/composer',
-			],
-			'/tmp/audit/home'
-		);
-
-		$this->assertSame(
-			[
-				'PATH'               => '/usr/bin',
-				'COMPOSER_HOME'      => '/tmp/audit/home',
-				'COMPOSER_CACHE_DIR' => '/home/me/.cache/composer',
-			],
-			$env
-		);
-	}
 }

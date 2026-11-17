@@ -465,6 +465,183 @@ class GitHub {
 	}
 
 	/**
+	 * Compares two refs of a repository.
+	 *
+	 * @param string $project Repository name, including the org.
+	 * @param string $base    Base ref.
+	 * @param string $head    Head ref.
+	 *
+	 * @return object Comparison, with `ahead_by`, `behind_by` and `commits`.
+	 */
+	public static function compare( $project, $base, $head ) {
+		list( $comparison ) = self::request(
+			self::API_ROOT . "repos/{$project}/compare/" . rawurlencode( $base ) . '...' . rawurlencode( $head )
+		);
+
+		return $comparison;
+	}
+
+	/**
+	 * Gets the commit a branch points at.
+	 *
+	 * @param string $project Repository name, including the org.
+	 * @param string $branch  Branch name.
+	 *
+	 * @return string|null Commit SHA, or null when there is no such branch.
+	 */
+	public static function get_branch_sha( $project, $branch ) {
+		$result = self::request( self::API_ROOT . "repos/{$project}/git/ref/heads/{$branch}", [], 'GET', [ 404 ] );
+
+		return $result ? $result[0]->object->sha : null;
+	}
+
+	/**
+	 * Commits a change to one file on top of a commit, without moving any
+	 * branch.
+	 *
+	 * @param string $project  Repository name, including the org.
+	 * @param string $parent_sha SHA of the parent commit.
+	 * @param string $path     Path of the file within the repository.
+	 * @param string $contents New contents of the file.
+	 * @param string $message  Commit message.
+	 *
+	 * @return string SHA of the new commit.
+	 */
+	public static function commit_file( $project, $parent_sha, $path, $contents, $message ) {
+		list( $parent_commit ) = self::request( self::API_ROOT . "repos/{$project}/git/commits/{$parent_sha}" );
+
+		list( $tree ) = self::request(
+			self::API_ROOT . "repos/{$project}/git/trees",
+			[
+				'base_tree' => $parent_commit->tree->sha,
+				'tree'      => [
+					[
+						'path'    => $path,
+						'mode'    => '100644',
+						'type'    => 'blob',
+						'content' => $contents,
+					],
+				],
+			],
+			'POST'
+		);
+
+		list( $commit ) = self::request(
+			self::API_ROOT . "repos/{$project}/git/commits",
+			[
+				'message' => $message,
+				'tree'    => $tree->sha,
+				'parents' => [ $parent_sha ],
+			],
+			'POST'
+		);
+
+		return $commit->sha;
+	}
+
+	/**
+	 * Points a branch at a commit, creating the branch if needed. An existing
+	 * branch is moved even when the commit does not descend from it.
+	 *
+	 * @param string $project Repository name, including the org.
+	 * @param string $branch  Branch name.
+	 * @param string $sha     Commit SHA.
+	 * @param bool   $exists  Whether the branch exists already.
+	 */
+	public static function set_branch( $project, $branch, $sha, $exists ) {
+		if ( $exists ) {
+			self::request(
+				self::API_ROOT . "repos/{$project}/git/refs/heads/{$branch}",
+				[
+					'sha'   => $sha,
+					'force' => true,
+				],
+				'PATCH'
+			);
+			return;
+		}
+
+		self::request(
+			self::API_ROOT . "repos/{$project}/git/refs",
+			[
+				'ref' => "refs/heads/{$branch}",
+				'sha' => $sha,
+			],
+			'POST'
+		);
+	}
+
+	/**
+	 * Gets the open pull request from a branch of the repository itself.
+	 *
+	 * @param string $project Repository name, including the org.
+	 * @param string $branch  Head branch.
+	 *
+	 * @return object|null
+	 */
+	public static function get_open_pull_request( $project, $branch ) {
+		list( $owner )         = explode( '/', $project );
+		list( $pull_requests ) = self::request(
+			self::API_ROOT . "repos/{$project}/pulls",
+			[
+				'head'  => "{$owner}:{$branch}",
+				'state' => 'open',
+			]
+		);
+
+		return $pull_requests ? $pull_requests[0] : null;
+	}
+
+	/**
+	 * Opens a pull request.
+	 *
+	 * @param string $project Repository name, including the org.
+	 * @param string $head    Branch with the changes.
+	 * @param string $base    Branch to merge them into.
+	 * @param string $title   Title.
+	 * @param string $body    Description.
+	 *
+	 * @return object Pull request.
+	 */
+	public static function create_pull_request( $project, $head, $base, $title, $body ) {
+		list( $pull_request ) = self::request(
+			self::API_ROOT . "repos/{$project}/pulls",
+			[
+				'head'  => $head,
+				'base'  => $base,
+				'title' => $title,
+				'body'  => $body,
+			],
+			'POST'
+		);
+
+		return $pull_request;
+	}
+
+	/**
+	 * Changes the title and description of a pull request.
+	 *
+	 * @param string $project Repository name, including the org.
+	 * @param int    $number  Pull request number.
+	 * @param string $title   Title.
+	 * @param string $body    Description.
+	 *
+	 * @return object Pull request.
+	 */
+	public static function update_pull_request( $project, $number, $title, $body ) {
+		list( $pull_request ) = self::request(
+			self::API_ROOT . "repos/{$project}/pulls/{$number}",
+			[
+				'title' => $title,
+				'body'  => $body,
+			],
+			'PATCH'
+		);
+
+		return $pull_request;
+	}
+
+	/**
 	 * Gets the contents of a file of a repository at a ref.
 	 *
 	 * @param string $project Repository name, including the org.
