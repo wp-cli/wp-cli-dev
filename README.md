@@ -53,6 +53,8 @@ To find out which packages have unreleased changes, run `wp maintenance release 
 
 To check the locked dependencies of the bundle for security advisories, run `wp maintenance dependencies audit`. It runs `composer audit` against the composer.lock as committed, so it reports what the Code Quality workflow fails on, and marks the packages that are only needed for development, as they don't ship in the Phar. `wp maintenance dependencies update` then updates the affected packages within the constraints of composer.json and opens a pull request with the new composer.lock. Pass `--dry-run` to see the changes first.
 
+To release everything that is ready across the bundle and refresh its lockfile in one go, ask Claude Code to "update the bundle" or run `/update-bundle` from this folder. The skill in `.claude/skills/update-bundle` asks you about every open milestone question first, gets your approval before tagging anything, and then babysits the lockfile pull requests and the automated tests.
+
 ## Using
 
 This package implements the following commands:
@@ -150,6 +152,55 @@ GH_TOKEN or GITHUB_TOKEN environment variables otherwise.
     | credentials | ok     | Using the login of the GitHub CLI (gh).     |
     | account     | ok     | Authenticated as octocat.                   |
     ...
+
+
+
+### wp maintenance milestone
+
+
+
+~~~
+wp maintenance milestone
+~~~
+
+
+
+
+
+### wp maintenance milestone assign
+
+Puts issues or pull requests on a milestone.
+
+~~~
+wp maintenance milestone assign <repo> <milestone> <number>... [--create]
+~~~
+
+Replaces the milestone they were on, so this also defers the open items
+of a milestone to a later one, or moves pull requests off a milestone
+that was released already.
+
+**OPTIONS**
+
+	<repo>
+		Name of the repository. If no user/org was provided, 'wp-cli' org is
+		assumed.
+
+	<milestone>
+		Title of the milestone, such as 3.0.4.
+
+	<number>...
+		Numbers of the issues or pull requests.
+
+	[--create]
+		Create the milestone when the repository has none with that title.
+
+**EXAMPLES**
+
+    # Defer an open pull request to the next patch release.
+    $ wp maintenance milestone assign i18n-command 3.0.4 503 --create
+    Created milestone '3.0.4' in wp-cli/i18n-command.
+    Added #503 to milestone '3.0.4'.
+    Success: Put 1 issue(s) or pull request(s) on milestone '3.0.4'.
 
 
 
@@ -317,7 +368,16 @@ all sit on one open milestone that `release generate` can release, and
 which milestone a pull request belongs to. The blockers say what.
 
 Routine pull requests by Dependabot or GitHub Actions only count when
-they are on a milestone.
+they are on a milestone, and so do pull requests that only change
+workflows, the README or other files synced from wp-cli/.github.
+
+The JSON also lists what a maintainer may want to look at before a
+release without it blocking one: `open_pull_requests` without an open
+milestone, the `open_items` still on the milestone of the unreleased
+changes, `direct_commits` that no pull request brought in and that
+change more than those development files (null when there are more
+commits since the latest tag than GitHub compares), and the
+`open_milestones` that could still be released.
 
 Makes no changes.
 
