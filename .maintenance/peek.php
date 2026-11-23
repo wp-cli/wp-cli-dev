@@ -525,24 +525,44 @@ function peek_kill_tree( $proc, $signo ) {
 			$queue = array_merge( $queue, $children[ $pid ] );
 		}
 	}
-	$send = function ( $sig ) use ( $pids ) {
+	$send = function ( $sig, array $targets ) {
 		if ( function_exists( 'posix_kill' ) ) {
-			foreach ( $pids as $pid ) {
+			foreach ( $targets as $pid ) {
 				@posix_kill( $pid, $sig );
 			}
-		} else {
-			@exec( 'kill -' . (int) $sig . ' ' . implode( ' ', $pids ) . ' 2>/dev/null' );
+		} elseif ( $targets ) {
+			@exec( 'kill -' . (int) $sig . ' ' . implode( ' ', $targets ) . ' 2>/dev/null' );
 		}
 	};
-	$send( $signo );
+	// Check the PIDs captured above rather than asking ps again: a job that
+	// outlives the driver is reparented and would no longer show up below it.
+	$driver = $pids[0];
+	$alive  = function () use ( $proc, $pids, $driver ) {
+		$left = array();
+		foreach ( $pids as $pid ) {
+			if ( $pid === $driver ) {
+				$status  = proc_get_status( $proc );
+				$running = $status['running'];
+			} elseif ( function_exists( 'posix_kill' ) ) {
+				$running = @posix_kill( $pid, 0 );
+			} else {
+				@exec( 'kill -0 ' . $pid . ' 2>/dev/null', $out, $rc );
+				$running = 0 === $rc;
+			}
+			if ( $running ) {
+				$left[] = $pid;
+			}
+		}
+		return $left;
+	};
+	$send( $signo, $pids );
 	for ( $i = 0; $i < 20; $i++ ) {
-		$status = proc_get_status( $proc );
-		if ( ! $status['running'] ) {
+		if ( ! $alive() ) {
 			return;
 		}
 		usleep( 100000 );
 	}
-	$send( 9 );
+	$send( 9, $alive() );
 }
 
 function peek_cmd_serve( array $argv ) {
