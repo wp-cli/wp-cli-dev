@@ -499,6 +499,52 @@ function peek_drain( $srv, PeekDisplay $disp ) {
 	}
 }
 
+/**
+ * Send a signal to a process and every process below it, then wait briefly
+ * for the process to exit and kill whatever is left.
+ */
+function peek_kill_tree( $proc, $signo ) {
+	$status = proc_get_status( $proc );
+	if ( ! $status['running'] ) {
+		return;
+	}
+	$pids     = array( (int) $status['pid'] );
+	$children = array();
+	@exec( 'ps -A -o pid= -o ppid= 2>/dev/null', $rows );
+	foreach ( (array) $rows as $row ) {
+		$cols = preg_split( '/\s+/', trim( $row ) );
+		if ( 2 === count( $cols ) ) {
+			$children[ (int) $cols[1] ][] = (int) $cols[0];
+		}
+	}
+	$queue = $pids;
+	while ( $queue ) {
+		$pid = array_shift( $queue );
+		if ( isset( $children[ $pid ] ) ) {
+			$pids  = array_merge( $pids, $children[ $pid ] );
+			$queue = array_merge( $queue, $children[ $pid ] );
+		}
+	}
+	$send = function ( $sig ) use ( $pids ) {
+		if ( function_exists( 'posix_kill' ) ) {
+			foreach ( $pids as $pid ) {
+				@posix_kill( $pid, $sig );
+			}
+		} else {
+			@exec( 'kill -' . (int) $sig . ' ' . implode( ' ', $pids ) . ' 2>/dev/null' );
+		}
+	};
+	$send( $signo );
+	for ( $i = 0; $i < 20; $i++ ) {
+		$status = proc_get_status( $proc );
+		if ( ! $status['running'] ) {
+			return;
+		}
+		usleep( 100000 );
+	}
+	$send( 9 );
+}
+
 function peek_cmd_serve( array $argv ) {
 	$peek_lines = 6;
 	$fps        = 12.5;
@@ -583,9 +629,19 @@ function peek_cmd_serve( array $argv ) {
 	register_shutdown_function( $restore );
 	if ( function_exists( 'pcntl_async_signals' ) ) {
 		pcntl_async_signals( true );
-		$on_signal = function () use ( $restore ) {
+		// Stop the jobs and remove the socket before exiting, so a cancelled
+		// run leaves no clone or pull running and no temp directory behind.
+		$on_signal = function ( $signo ) use ( $proc, $pipes, $srv, $sock_path, $tmp, $restore ) {
+			peek_kill_tree( $proc, $signo );
+			@fclose( $pipes[1] );
+			if ( ! proc_get_status( $proc )['running'] ) {
+				proc_close( $proc );
+			}
+			@fclose( $srv );
+			@unlink( $sock_path );
+			@rmdir( $tmp );
 			$restore();
-			exit( 130 );
+			exit( 128 + $signo );
 		};
 		pcntl_signal( SIGINT, $on_signal );
 		pcntl_signal( SIGTERM, $on_signal );
