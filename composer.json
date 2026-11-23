@@ -256,9 +256,6 @@
         "wp-cli/wp-config-transformer": "dev-main as 1.2.x-dev",
         "wp-cli/wp-super-cache-cli": "dev-main"
     },
-    "require-dev": {
-        "roave/security-advisories": "dev-latest"
-    },
     "suggest": {
         "psy/psysh": "Enhanced `wp shell` functionality"
     },
@@ -281,8 +278,15 @@
         "commands": [
             "maintenance",
             "maintenance contrib-list",
+            "maintenance doctor",
+            "maintenance milestone",
+            "maintenance milestone assign",
             "maintenance milestones-after",
             "maintenance milestones-since",
+            "maintenance release",
+            "maintenance release close-released",
+            "maintenance release generate",
+        "maintenance release plan",
             "maintenance release-date",
             "maintenance release-notes",
             "maintenance replace-label"
@@ -310,7 +314,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "WP_CLI\\Maintenance\\": ".maintenance/src/"
+            "WP_CLI\\Maintenance\\": ".maintenance/src/",
+            "WP_CLI\\Maintenance\\Tests\\": "tests/includes/"
         },
         "files": [
             ".maintenance/bootstrap.php"
@@ -336,6 +341,7 @@
         "phpstan": "run-phpstan-tests",
         "phpunit": "run-php-unit-tests",
         "prepare-tests": "install-package-tests",
+        "update-github-fixtures": "php tests/fixtures/github/update.php",
         "test": [
             "@lint",
             "@phpcs",

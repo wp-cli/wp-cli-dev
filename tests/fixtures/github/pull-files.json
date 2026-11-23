@@ -1,0 +1,19 @@
+{
+    "request": "GET /repos/wp-cli/block-command/pulls/17/files",
+    "status": 200,
+    "headers": {},
+    "body": [
+        {
+            "sha": "102bd8455e80ed6dad671eaae71073b984e4dee5",
+            "filename": "README.md",
+            "status": "modified",
+            "additions": 1,
+            "deletions": 1,
+            "changes": 2,
+            "blob_url": "https://github.com/wp-cli/block-command/blob/cf34db132a42caaa764e59a03c5b87453a8fb76f/README.md",
+            "raw_url": "https://github.com/wp-cli/block-command/raw/cf34db132a42caaa764e59a03c5b87453a8fb76f/README.md",
+            "contents_url": "https://api.github.com/repos/wp-cli/block-command/contents/README.md?ref=cf34db132a42caaa764e59a03c5b87453a8fb76f",
+            "patch": "@@ -1215,7 +1215,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file\n \n ## Support\n \n-GitHub issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support\n+GitHub issues aren't for general support questions. For support resources and next steps, see the WP-CLI Support page: https://make.wordpress.org/cli/handbook/support/\n \n \n *This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*"
+        }
+    ]
+}

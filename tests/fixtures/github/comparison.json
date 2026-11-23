@@ -1,0 +1,1052 @@
+{
+    "request": "GET /repos/wp-cli/block-command/compare/v1.0.1...v1.0.3",
+    "status": 200,
+    "headers": {},
+    "body": {
+        "url": "https://api.github.com/repos/wp-cli/block-command/compare/v1.0.1...v1.0.3",
+        "html_url": "https://github.com/wp-cli/block-command/compare/v1.0.1...v1.0.3",
+        "permalink_url": "https://github.com/wp-cli/block-command/compare/wp-cli:259b8da...wp-cli:f7dd14d",
+        "diff_url": "https://github.com/wp-cli/block-command/compare/v1.0.1...v1.0.3.diff",
+        "patch_url": "https://github.com/wp-cli/block-command/compare/v1.0.1...v1.0.3.patch",
+        "base_commit": {
+            "sha": "259b8da86f84a386e262189be3f4b912183f563d",
+            "node_id": "C_kwDOQl0QSdoAKDI1OWI4ZGE4NmY4NGEzODZlMjYyMTg5YmUzZjRiOTEyMTgzZjU2M2Q",
+            "commit": {
+                "author": {
+                    "name": "Pascal Birchler",
+                    "email": "pascal.birchler@gmail.com",
+                    "date": "2026-03-28T12:09:20Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2026-03-28T12:09:20Z"
+                },
+                "message": "Tests: improve Windows compatibility (#15)",
+                "tree": {
+                    "sha": "de8ec7aa4f0e6df9ae195fe2db6d91e2116aac61",
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/de8ec7aa4f0e6df9ae195fe2db6d91e2116aac61"
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/259b8da86f84a386e262189be3f4b912183f563d",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJpx8TwCRC1aQ7uu5UhlAAAVWwQAEB+Bl6IHIZfDyqQm0irqHIc\nqraRvaz+ZVPM59xpW9kEevGDbmXNweicQlSVkDPu7DQG+ZjN0zX0Aiq0G9AYt1Mb\nxf6dguGSr+Qnh/wM7QKi9RgjSnZMCvk1m/FUD9aeo0B+XBnOTpoDhdBALV6PaLmG\n/aqoPZuQeaXKNVRunm1ToPq6J+UCDVolcE9CmkKqH+NridPjS/zDUmBXWfqRk3TG\nY1DJfoos/abg+ARfuWV4Qtmvz5KgnYsyzLSXKm6ZCdtZ/hrgK48NQw9yNWbMGcye\nFCJPS+PwOMWZjyu2kBO5+DipeWb4gfEkufEJJ6u2ZgZ1Bv9w1SDJ8PLkNs7bUskV\nxU0U2jhu6mhG2f0KJGuxr8jaz3wYFzL+s+pEZE6aH+fzeJtB3kjGLQPBseL85rT0\neIgmoER6BcaVZndpBCjaRpYEzAnyk4pPXVJbViZGsvplpTAw9dvaxupiufxtYoJG\nMqpq9GR53OgU+SzSAIExdvi/BmL/tCp25DeJ6NJM1tkhK2FWsot23ejMsKkcrCWh\n2cMIDdr0EjrIxiul3jlauxU88/dAjnZrD41ufqh5Spsh+TZnY8bRFwyFDGTplmKl\nvoFR3usz8XpvS+jdhXONw/YNAlYjNSa2H6K8RtabufQo9smLaKCFCUJ91c2/MiLa\nS0l+sVOqVqw8vJhqNfsS\n=/ZjC\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree de8ec7aa4f0e6df9ae195fe2db6d91e2116aac61\nparent 020d47a834d94fb7d5e34084d20dc13b5594cfdd\nauthor Pascal Birchler <pascal.birchler@gmail.com> 1774699760 +0100\ncommitter GitHub <noreply@github.com> 1774699760 +0100\n\nTests: improve Windows compatibility (#15)",
+                    "verified_at": "2026-03-28T12:09:21Z"
+                }
+            },
+            "url": "https://api.github.com/repos/wp-cli/block-command/commits/259b8da86f84a386e262189be3f4b912183f563d",
+            "html_url": "https://github.com/wp-cli/block-command/commit/259b8da86f84a386e262189be3f4b912183f563d",
+            "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/259b8da86f84a386e262189be3f4b912183f563d/comments",
+            "author": {
+                "login": "swissspidy",
+                "id": 841956,
+                "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/swissspidy",
+                "html_url": "https://github.com/swissspidy",
+                "followers_url": "https://api.github.com/users/swissspidy/followers",
+                "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                "repos_url": "https://api.github.com/users/swissspidy/repos",
+                "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                "type": "User",
+                "user_view_type": "public",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "user_view_type": "public",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "020d47a834d94fb7d5e34084d20dc13b5594cfdd",
+                    "url": "https://api.github.com/repos/wp-cli/block-command/commits/020d47a834d94fb7d5e34084d20dc13b5594cfdd",
+                    "html_url": "https://github.com/wp-cli/block-command/commit/020d47a834d94fb7d5e34084d20dc13b5594cfdd"
+                }
+            ]
+        },
+        "merge_base_commit": {
+            "sha": "259b8da86f84a386e262189be3f4b912183f563d",
+            "node_id": "C_kwDOQl0QSdoAKDI1OWI4ZGE4NmY4NGEzODZlMjYyMTg5YmUzZjRiOTEyMTgzZjU2M2Q",
+            "commit": {
+                "author": {
+                    "name": "Pascal Birchler",
+                    "email": "pascal.birchler@gmail.com",
+                    "date": "2026-03-28T12:09:20Z"
+                },
+                "committer": {
+                    "name": "GitHub",
+                    "email": "noreply@github.com",
+                    "date": "2026-03-28T12:09:20Z"
+                },
+                "message": "Tests: improve Windows compatibility (#15)",
+                "tree": {
+                    "sha": "de8ec7aa4f0e6df9ae195fe2db6d91e2116aac61",
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/de8ec7aa4f0e6df9ae195fe2db6d91e2116aac61"
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/259b8da86f84a386e262189be3f4b912183f563d",
+                "comment_count": 0,
+                "verification": {
+                    "verified": true,
+                    "reason": "valid",
+                    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJpx8TwCRC1aQ7uu5UhlAAAVWwQAEB+Bl6IHIZfDyqQm0irqHIc\nqraRvaz+ZVPM59xpW9kEevGDbmXNweicQlSVkDPu7DQG+ZjN0zX0Aiq0G9AYt1Mb\nxf6dguGSr+Qnh/wM7QKi9RgjSnZMCvk1m/FUD9aeo0B+XBnOTpoDhdBALV6PaLmG\n/aqoPZuQeaXKNVRunm1ToPq6J+UCDVolcE9CmkKqH+NridPjS/zDUmBXWfqRk3TG\nY1DJfoos/abg+ARfuWV4Qtmvz5KgnYsyzLSXKm6ZCdtZ/hrgK48NQw9yNWbMGcye\nFCJPS+PwOMWZjyu2kBO5+DipeWb4gfEkufEJJ6u2ZgZ1Bv9w1SDJ8PLkNs7bUskV\nxU0U2jhu6mhG2f0KJGuxr8jaz3wYFzL+s+pEZE6aH+fzeJtB3kjGLQPBseL85rT0\neIgmoER6BcaVZndpBCjaRpYEzAnyk4pPXVJbViZGsvplpTAw9dvaxupiufxtYoJG\nMqpq9GR53OgU+SzSAIExdvi/BmL/tCp25DeJ6NJM1tkhK2FWsot23ejMsKkcrCWh\n2cMIDdr0EjrIxiul3jlauxU88/dAjnZrD41ufqh5Spsh+TZnY8bRFwyFDGTplmKl\nvoFR3usz8XpvS+jdhXONw/YNAlYjNSa2H6K8RtabufQo9smLaKCFCUJ91c2/MiLa\nS0l+sVOqVqw8vJhqNfsS\n=/ZjC\n-----END PGP SIGNATURE-----\n",
+                    "payload": "tree de8ec7aa4f0e6df9ae195fe2db6d91e2116aac61\nparent 020d47a834d94fb7d5e34084d20dc13b5594cfdd\nauthor Pascal Birchler <pascal.birchler@gmail.com> 1774699760 +0100\ncommitter GitHub <noreply@github.com> 1774699760 +0100\n\nTests: improve Windows compatibility (#15)",
+                    "verified_at": "2026-03-28T12:09:21Z"
+                }
+            },
+            "url": "https://api.github.com/repos/wp-cli/block-command/commits/259b8da86f84a386e262189be3f4b912183f563d",
+            "html_url": "https://github.com/wp-cli/block-command/commit/259b8da86f84a386e262189be3f4b912183f563d",
+            "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/259b8da86f84a386e262189be3f4b912183f563d/comments",
+            "author": {
+                "login": "swissspidy",
+                "id": 841956,
+                "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/swissspidy",
+                "html_url": "https://github.com/swissspidy",
+                "followers_url": "https://api.github.com/users/swissspidy/followers",
+                "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                "repos_url": "https://api.github.com/users/swissspidy/repos",
+                "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                "type": "User",
+                "user_view_type": "public",
+                "site_admin": false
+            },
+            "committer": {
+                "login": "web-flow",
+                "id": 19864447,
+                "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                "gravatar_id": "",
+                "url": "https://api.github.com/users/web-flow",
+                "html_url": "https://github.com/web-flow",
+                "followers_url": "https://api.github.com/users/web-flow/followers",
+                "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                "repos_url": "https://api.github.com/users/web-flow/repos",
+                "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                "type": "User",
+                "user_view_type": "public",
+                "site_admin": false
+            },
+            "parents": [
+                {
+                    "sha": "020d47a834d94fb7d5e34084d20dc13b5594cfdd",
+                    "url": "https://api.github.com/repos/wp-cli/block-command/commits/020d47a834d94fb7d5e34084d20dc13b5594cfdd",
+                    "html_url": "https://github.com/wp-cli/block-command/commit/020d47a834d94fb7d5e34084d20dc13b5594cfdd"
+                }
+            ]
+        },
+        "status": "ahead",
+        "ahead_by": 10,
+        "behind_by": 0,
+        "total_commits": 10,
+        "commits": [
+            {
+                "sha": "0354f94deba582b6c0549cb2788eb7201ac00d0d",
+                "node_id": "C_kwDOQl0QSdoAKDAzNTRmOTRkZWJhNTgyYjZjMDU0OWNiMjc4OGViNzIwMWFjMDBkMGQ",
+                "commit": {
+                    "author": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-04-22T08:45:37Z"
+                    },
+                    "committer": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-04-22T08:45:37Z"
+                    },
+                    "message": "Update file(s) from wp-cli/.github",
+                    "tree": {
+                        "sha": "18e32df3e1da81ba076caf85d3e19913563fb830",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/18e32df3e1da81ba076caf85d3e19913563fb830"
+                    },
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/0354f94deba582b6c0549cb2788eb7201ac00d0d",
+                    "comment_count": 0,
+                    "verification": {
+                        "verified": false,
+                        "reason": "unsigned",
+                        "signature": null,
+                        "payload": null,
+                        "verified_at": null
+                    }
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/0354f94deba582b6c0549cb2788eb7201ac00d0d",
+                "html_url": "https://github.com/wp-cli/block-command/commit/0354f94deba582b6c0549cb2788eb7201ac00d0d",
+                "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/0354f94deba582b6c0549cb2788eb7201ac00d0d/comments",
+                "author": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "committer": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "parents": [
+                    {
+                        "sha": "259b8da86f84a386e262189be3f4b912183f563d",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/commits/259b8da86f84a386e262189be3f4b912183f563d",
+                        "html_url": "https://github.com/wp-cli/block-command/commit/259b8da86f84a386e262189be3f4b912183f563d"
+                    }
+                ]
+            },
+            {
+                "sha": "4fb8257e8f74ce390b19bed03134a25072501f16",
+                "node_id": "C_kwDOQl0QSdoAKDRmYjgyNTdlOGY3NGNlMzkwYjE5YmVkMDMxMzRhMjUwNzI1MDFmMTY",
+                "commit": {
+                    "author": {
+                        "name": "ernilambar",
+                        "email": "ernilambar@users.noreply.github.com",
+                        "date": "2026-05-14T09:14:07Z"
+                    },
+                    "committer": {
+                        "name": "ernilambar",
+                        "email": "ernilambar@users.noreply.github.com",
+                        "date": "2026-05-14T09:14:07Z"
+                    },
+                    "message": "Update file(s) from wp-cli/.github",
+                    "tree": {
+                        "sha": "2327102a9662e70d88e793890f61a24cbc15777d",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/2327102a9662e70d88e793890f61a24cbc15777d"
+                    },
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/4fb8257e8f74ce390b19bed03134a25072501f16",
+                    "comment_count": 0,
+                    "verification": {
+                        "verified": false,
+                        "reason": "unsigned",
+                        "signature": null,
+                        "payload": null,
+                        "verified_at": null
+                    }
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/4fb8257e8f74ce390b19bed03134a25072501f16",
+                "html_url": "https://github.com/wp-cli/block-command/commit/4fb8257e8f74ce390b19bed03134a25072501f16",
+                "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/4fb8257e8f74ce390b19bed03134a25072501f16/comments",
+                "author": {
+                    "login": "ernilambar",
+                    "id": 2098823,
+                    "node_id": "MDQ6VXNlcjIwOTg4MjM=",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/2098823?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/ernilambar",
+                    "html_url": "https://github.com/ernilambar",
+                    "followers_url": "https://api.github.com/users/ernilambar/followers",
+                    "following_url": "https://api.github.com/users/ernilambar/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/ernilambar/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/ernilambar/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/ernilambar/subscriptions",
+                    "organizations_url": "https://api.github.com/users/ernilambar/orgs",
+                    "repos_url": "https://api.github.com/users/ernilambar/repos",
+                    "events_url": "https://api.github.com/users/ernilambar/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/ernilambar/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "committer": {
+                    "login": "ernilambar",
+                    "id": 2098823,
+                    "node_id": "MDQ6VXNlcjIwOTg4MjM=",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/2098823?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/ernilambar",
+                    "html_url": "https://github.com/ernilambar",
+                    "followers_url": "https://api.github.com/users/ernilambar/followers",
+                    "following_url": "https://api.github.com/users/ernilambar/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/ernilambar/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/ernilambar/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/ernilambar/subscriptions",
+                    "organizations_url": "https://api.github.com/users/ernilambar/orgs",
+                    "repos_url": "https://api.github.com/users/ernilambar/repos",
+                    "events_url": "https://api.github.com/users/ernilambar/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/ernilambar/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "parents": [
+                    {
+                        "sha": "0354f94deba582b6c0549cb2788eb7201ac00d0d",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/commits/0354f94deba582b6c0549cb2788eb7201ac00d0d",
+                        "html_url": "https://github.com/wp-cli/block-command/commit/0354f94deba582b6c0549cb2788eb7201ac00d0d"
+                    }
+                ]
+            },
+            {
+                "sha": "27bbb207275386f0e44f679085eee95fae60694d",
+                "node_id": "C_kwDOQl0QSdoAKDI3YmJiMjA3Mjc1Mzg2ZjBlNDRmNjc5MDg1ZWVlOTVmYWU2MDY5NGQ",
+                "commit": {
+                    "author": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-06-02T15:40:06Z"
+                    },
+                    "committer": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-06-02T15:40:06Z"
+                    },
+                    "message": "Update file(s) from wp-cli/.github",
+                    "tree": {
+                        "sha": "8d8c176a5d70e6c48e0812e16cb14a85a9911831",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/8d8c176a5d70e6c48e0812e16cb14a85a9911831"
+                    },
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/27bbb207275386f0e44f679085eee95fae60694d",
+                    "comment_count": 0,
+                    "verification": {
+                        "verified": false,
+                        "reason": "unsigned",
+                        "signature": null,
+                        "payload": null,
+                        "verified_at": null
+                    }
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/27bbb207275386f0e44f679085eee95fae60694d",
+                "html_url": "https://github.com/wp-cli/block-command/commit/27bbb207275386f0e44f679085eee95fae60694d",
+                "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/27bbb207275386f0e44f679085eee95fae60694d/comments",
+                "author": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "committer": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "parents": [
+                    {
+                        "sha": "4fb8257e8f74ce390b19bed03134a25072501f16",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/commits/4fb8257e8f74ce390b19bed03134a25072501f16",
+                        "html_url": "https://github.com/wp-cli/block-command/commit/4fb8257e8f74ce390b19bed03134a25072501f16"
+                    }
+                ]
+            },
+            {
+                "sha": "7184f64c815e4f2198de72e87f24028491d05e06",
+                "node_id": "C_kwDOQl0QSdoAKDcxODRmNjRjODE1ZTRmMjE5OGRlNzJlODdmMjQwMjg0OTFkMDVlMDY",
+                "commit": {
+                    "author": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-06-08T16:57:17Z"
+                    },
+                    "committer": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-06-08T16:57:17Z"
+                    },
+                    "message": "Update file(s) from wp-cli/.github",
+                    "tree": {
+                        "sha": "9bc3c60b23a6b750a4f60b145f8a24f7e0790ec8",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/9bc3c60b23a6b750a4f60b145f8a24f7e0790ec8"
+                    },
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/7184f64c815e4f2198de72e87f24028491d05e06",
+                    "comment_count": 0,
+                    "verification": {
+                        "verified": false,
+                        "reason": "unsigned",
+                        "signature": null,
+                        "payload": null,
+                        "verified_at": null
+                    }
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/7184f64c815e4f2198de72e87f24028491d05e06",
+                "html_url": "https://github.com/wp-cli/block-command/commit/7184f64c815e4f2198de72e87f24028491d05e06",
+                "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/7184f64c815e4f2198de72e87f24028491d05e06/comments",
+                "author": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "committer": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "parents": [
+                    {
+                        "sha": "27bbb207275386f0e44f679085eee95fae60694d",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/commits/27bbb207275386f0e44f679085eee95fae60694d",
+                        "html_url": "https://github.com/wp-cli/block-command/commit/27bbb207275386f0e44f679085eee95fae60694d"
+                    }
+                ]
+            },
+            {
+                "sha": "e7a945c8b974457926a50df67d5f509220c6535a",
+                "node_id": "C_kwDOQl0QSdoAKGU3YTk0NWM4Yjk3NDQ1NzkyNmE1MGRmNjdkNWY1MDkyMjBjNjUzNWE",
+                "commit": {
+                    "author": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-06-18T14:38:13Z"
+                    },
+                    "committer": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-06-18T14:38:13Z"
+                    },
+                    "message": "Update file(s) from wp-cli/.github",
+                    "tree": {
+                        "sha": "545abdf4fdcdda0560617bc796fb5b187d058c86",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/545abdf4fdcdda0560617bc796fb5b187d058c86"
+                    },
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/e7a945c8b974457926a50df67d5f509220c6535a",
+                    "comment_count": 0,
+                    "verification": {
+                        "verified": false,
+                        "reason": "unsigned",
+                        "signature": null,
+                        "payload": null,
+                        "verified_at": null
+                    }
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/e7a945c8b974457926a50df67d5f509220c6535a",
+                "html_url": "https://github.com/wp-cli/block-command/commit/e7a945c8b974457926a50df67d5f509220c6535a",
+                "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/e7a945c8b974457926a50df67d5f509220c6535a/comments",
+                "author": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "committer": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "parents": [
+                    {
+                        "sha": "7184f64c815e4f2198de72e87f24028491d05e06",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/commits/7184f64c815e4f2198de72e87f24028491d05e06",
+                        "html_url": "https://github.com/wp-cli/block-command/commit/7184f64c815e4f2198de72e87f24028491d05e06"
+                    }
+                ]
+            },
+            {
+                "sha": "0219166f30bb4164e4bfc783ae692e913364e7ff",
+                "node_id": "C_kwDOQl0QSdoAKDAyMTkxNjZmMzBiYjQxNjRlNGJmYzc4M2FlNjkyZTkxMzM2NGU3ZmY",
+                "commit": {
+                    "author": {
+                        "name": "github-actions[bot]",
+                        "email": "41898282+github-actions[bot]@users.noreply.github.com",
+                        "date": "2026-07-13T10:00:50Z"
+                    },
+                    "committer": {
+                        "name": "GitHub",
+                        "email": "noreply@github.com",
+                        "date": "2026-07-13T10:00:50Z"
+                    },
+                    "message": "Regenerate README file (#17)",
+                    "tree": {
+                        "sha": "a4482e951e31e49d89f2c0f96c44127b792436fe",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/a4482e951e31e49d89f2c0f96c44127b792436fe"
+                    },
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/0219166f30bb4164e4bfc783ae692e913364e7ff",
+                    "comment_count": 0,
+                    "verification": {
+                        "verified": true,
+                        "reason": "valid",
+                        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJqVLdSCRC1aQ7uu5UhlAAAcTgQACZw6DU1tc3EaPPI/tRAYrxr\nZ3T+kvW3aPY3zdB2tTkAa8dlEAargVTGvE/aAZyhoJYjR29Hd1Tjl5hMhSN4Ho5A\nZ/hJwAO9x2/dqpuRO2hVJh+45skDVtQGsODM0eUrFo+3lTgvDyq2W2JfaAHcx4uS\nDweuFxOleu4hOjlign6+hjyHvkffFPcVWYQpgjIYPmiSepBjPqlHY0pprK92w3T2\n9oth09wWk20xlohztjBzSE5vMhhw70ertAjk2TNzL9WacsmmBhnKDRt7MdizI1ZB\nti/RjDgC3MLciopi/WlMGz00GAcZKMeynS3ZE1cMeAO7hNSFi1wdFBuvbO0m/M5e\nZIz5DxSD61dwtS3tqtVhHASDvicZeLm7n8v0uyLqltqye1ybIFGa5j+Y0w5a00gt\njxuKYK1ACzZiH+J3jUoXx9hbY3ui9AB0o60Qd1/Q5KTOgI79VBD2UTyecVKdOBtf\n7BD7VZ+TEKnSFl1u+dpuxX77b/TY+zh2jFRb/vBcVYTN5u2C2dF13H0o6iQlVGx7\n2z5Q6LaKYX012R3hMQkRWb0WOikVTZ6rB9qFgxbtaNgzcMp31lOsTfZn3DHDQdFc\nCML9+C1xu85nOtN6Cm3xZYLCcF/mY/QqbPsVeVkVpaYpeC7ak9OBNsGn9PwQX18I\n0YolJ+BUfhvsRc5ku/Jf\n=T9Ey\n-----END PGP SIGNATURE-----\n",
+                        "payload": "tree a4482e951e31e49d89f2c0f96c44127b792436fe\nparent e7a945c8b974457926a50df67d5f509220c6535a\nauthor github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com> 1783936850 +0200\ncommitter GitHub <noreply@github.com> 1783936850 +0200\n\nRegenerate README file (#17)",
+                        "verified_at": "2026-07-13T10:00:50Z"
+                    }
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/0219166f30bb4164e4bfc783ae692e913364e7ff",
+                "html_url": "https://github.com/wp-cli/block-command/commit/0219166f30bb4164e4bfc783ae692e913364e7ff",
+                "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/0219166f30bb4164e4bfc783ae692e913364e7ff/comments",
+                "author": {
+                    "login": "github-actions[bot]",
+                    "id": 41898282,
+                    "node_id": "MDM6Qm90NDE4OTgyODI=",
+                    "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+                    "html_url": "https://github.com/apps/github-actions",
+                    "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+                    "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+                    "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+                    "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+                    "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+                    "type": "Bot",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "committer": {
+                    "login": "web-flow",
+                    "id": 19864447,
+                    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/web-flow",
+                    "html_url": "https://github.com/web-flow",
+                    "followers_url": "https://api.github.com/users/web-flow/followers",
+                    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+                    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+                    "repos_url": "https://api.github.com/users/web-flow/repos",
+                    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "parents": [
+                    {
+                        "sha": "e7a945c8b974457926a50df67d5f509220c6535a",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/commits/e7a945c8b974457926a50df67d5f509220c6535a",
+                        "html_url": "https://github.com/wp-cli/block-command/commit/e7a945c8b974457926a50df67d5f509220c6535a"
+                    }
+                ]
+            },
+            {
+                "sha": "ba292917f20f6071561332e2488b566f83b6a79b",
+                "node_id": "C_kwDOQl0QSdoAKGJhMjkyOTE3ZjIwZjYwNzE1NjEzMzJlMjQ4OGI1NjZmODNiNmE3OWI",
+                "commit": {
+                    "author": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-07-20T16:12:58Z"
+                    },
+                    "committer": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-07-20T16:12:58Z"
+                    },
+                    "message": "Update file(s) from wp-cli/.github",
+                    "tree": {
+                        "sha": "a1c728a4bf6a7c3a50d16d9328437c3c475a626d",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/a1c728a4bf6a7c3a50d16d9328437c3c475a626d"
+                    },
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/ba292917f20f6071561332e2488b566f83b6a79b",
+                    "comment_count": 0,
+                    "verification": {
+                        "verified": false,
+                        "reason": "unsigned",
+                        "signature": null,
+                        "payload": null,
+                        "verified_at": null
+                    }
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/ba292917f20f6071561332e2488b566f83b6a79b",
+                "html_url": "https://github.com/wp-cli/block-command/commit/ba292917f20f6071561332e2488b566f83b6a79b",
+                "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/ba292917f20f6071561332e2488b566f83b6a79b/comments",
+                "author": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "committer": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "parents": [
+                    {
+                        "sha": "0219166f30bb4164e4bfc783ae692e913364e7ff",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/commits/0219166f30bb4164e4bfc783ae692e913364e7ff",
+                        "html_url": "https://github.com/wp-cli/block-command/commit/0219166f30bb4164e4bfc783ae692e913364e7ff"
+                    }
+                ]
+            },
+            {
+                "sha": "bf948b431170ad6828770f2b77bbb1df9b5a7172",
+                "node_id": "C_kwDOQl0QSdoAKGJmOTQ4YjQzMTE3MGFkNjgyODc3MGYyYjc3YmJiMWRmOWI1YTcxNzI",
+                "commit": {
+                    "author": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-07-29T14:28:57Z"
+                    },
+                    "committer": {
+                        "name": "swissspidy",
+                        "email": "swissspidy@users.noreply.github.com",
+                        "date": "2026-07-29T14:28:57Z"
+                    },
+                    "message": "Update file(s) from wp-cli/.github",
+                    "tree": {
+                        "sha": "f1226bfb16a007be69de270bd23506ab3e43ba21",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/f1226bfb16a007be69de270bd23506ab3e43ba21"
+                    },
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/bf948b431170ad6828770f2b77bbb1df9b5a7172",
+                    "comment_count": 0,
+                    "verification": {
+                        "verified": false,
+                        "reason": "unsigned",
+                        "signature": null,
+                        "payload": null,
+                        "verified_at": null
+                    }
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/bf948b431170ad6828770f2b77bbb1df9b5a7172",
+                "html_url": "https://github.com/wp-cli/block-command/commit/bf948b431170ad6828770f2b77bbb1df9b5a7172",
+                "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/bf948b431170ad6828770f2b77bbb1df9b5a7172/comments",
+                "author": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "committer": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "parents": [
+                    {
+                        "sha": "ba292917f20f6071561332e2488b566f83b6a79b",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/commits/ba292917f20f6071561332e2488b566f83b6a79b",
+                        "html_url": "https://github.com/wp-cli/block-command/commit/ba292917f20f6071561332e2488b566f83b6a79b"
+                    }
+                ]
+            },
+            {
+                "sha": "ea751d8a375ce8ef6e0848441b993e833fbe8911",
+                "node_id": "C_kwDOQl0QSdoAKGVhNzUxZDhhMzc1Y2U4ZWY2ZTA4NDg0NDFiOTkzZTgzM2ZiZTg5MTE",
+                "commit": {
+                    "author": {
+                        "name": "Pascal Birchler",
+                        "email": "pascalb@google.com",
+                        "date": "2026-08-04T08:32:16Z"
+                    },
+                    "committer": {
+                        "name": "Pascal Birchler",
+                        "email": "pascalb@google.com",
+                        "date": "2026-08-04T08:32:16Z"
+                    },
+                    "message": "Require WP-CLI v3",
+                    "tree": {
+                        "sha": "fdda82e79fee21c36482c3ffcaf3ac346ebd4278",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/fdda82e79fee21c36482c3ffcaf3ac346ebd4278"
+                    },
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/ea751d8a375ce8ef6e0848441b993e833fbe8911",
+                    "comment_count": 0,
+                    "verification": {
+                        "verified": true,
+                        "reason": "valid",
+                        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCAAdFiEEc4kNaWiCqZigEBEVDeznPddOiy8FAmpxo5AACgkQDeznPddO\niy9QrQ//brKhr7cylwJTazqaXu14/SdC52xUTsRSxQhhvmJnVUgkVOs59NI8csqe\noO7azEGbRY5TLD+fopn1TzHG+SguIu437m2VfRmxYh11xtXt1Asc45z6eD6tIp+e\n/xnHM3NnfNAaNdjTGXXxPD85vvaxaSt1w8qI2ktszxcrTUrfcQDON/BQ8Z+1Z/uZ\nuLoWB9LVc8EDDFGuI56cZ5p5NzPPyxYuWKYT49V+4QBT5T1wARb5PMbWPLKvQDR/\nfKckoiC/qiL0hnHsBidUH6W7hxd1zSSnGsTqEtEBQ9IfVZA7M1RiruCm7cM/ETRo\ncXUgsdFO01NnLfJ9Dokv1L+7ESVBZ4XgWbqvYLOPtDccHRaTKmLoJnhj3LGhcwa9\ns+9+FRtcg1vWlf7JwDIA/ky9jK/dp9sZsnzF+aLI5dlJYjR1M7cUYPk+KMfGzQUp\nXvR252EP6VHZNUXyrG/MlfXsqNYFfGsd+wuVAGjMo07s1NuDBdHP4ReaV8251Tio\nv99smqddAB13RLyvJZHM7ybAtQOIWQg99oKwpiwZsWElMlMCueUoqt2xRVnTeDJi\nfxxs5zXdL7WOYsPRYeKm3nCKx7+ueirxNFZMnv/nTtc/1ZrlmvzIDGzFm4gQnFLC\nIDRu+DeVmvsj/8nf+qDHUWdmBE44X7IHCIrCd14nBpc6Um5/ovk=\n=xvGL\n-----END PGP SIGNATURE-----",
+                        "payload": "tree fdda82e79fee21c36482c3ffcaf3ac346ebd4278\nparent bf948b431170ad6828770f2b77bbb1df9b5a7172\nauthor Pascal Birchler <pascalb@google.com> 1785832336 +0200\ncommitter Pascal Birchler <pascalb@google.com> 1785832336 +0200\n\nRequire WP-CLI v3\n",
+                        "verified_at": "2026-08-04T08:32:20Z"
+                    }
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/ea751d8a375ce8ef6e0848441b993e833fbe8911",
+                "html_url": "https://github.com/wp-cli/block-command/commit/ea751d8a375ce8ef6e0848441b993e833fbe8911",
+                "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/ea751d8a375ce8ef6e0848441b993e833fbe8911/comments",
+                "author": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "committer": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "parents": [
+                    {
+                        "sha": "bf948b431170ad6828770f2b77bbb1df9b5a7172",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/commits/bf948b431170ad6828770f2b77bbb1df9b5a7172",
+                        "html_url": "https://github.com/wp-cli/block-command/commit/bf948b431170ad6828770f2b77bbb1df9b5a7172"
+                    }
+                ]
+            },
+            {
+                "sha": "f7dd14da742b8722877d0517326320cc5041bafb",
+                "node_id": "C_kwDOQl0QSdoAKGY3ZGQxNGRhNzQyYjg3MjI4NzdkMDUxNzMyNjMyMGNjNTA0MWJhZmI",
+                "commit": {
+                    "author": {
+                        "name": "Pascal Birchler",
+                        "email": "pascalb@google.com",
+                        "date": "2026-08-04T11:49:18Z"
+                    },
+                    "committer": {
+                        "name": "Pascal Birchler",
+                        "email": "pascalb@google.com",
+                        "date": "2026-08-04T11:49:18Z"
+                    },
+                    "message": "Update package requirements",
+                    "tree": {
+                        "sha": "2f1b8eaecbd62e9b4c6d8ac8e4c839c6ee17a02f",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/git/trees/2f1b8eaecbd62e9b4c6d8ac8e4c839c6ee17a02f"
+                    },
+                    "url": "https://api.github.com/repos/wp-cli/block-command/git/commits/f7dd14da742b8722877d0517326320cc5041bafb",
+                    "comment_count": 0,
+                    "verification": {
+                        "verified": true,
+                        "reason": "valid",
+                        "signature": "-----BEGIN PGP SIGNATURE-----\n\niQIzBAABCAAdFiEEc4kNaWiCqZigEBEVDeznPddOiy8FAmpx0b4ACgkQDeznPddO\niy9FKw//X/ht9utvFRQWAu4XpE187zJqJH0ePQn0zaRgWkmwMFgiS3LHTIOfuTo1\nZ0R5iR2F+5nj/9dGP+f90GAQ80MkqBxmlAPuZidTYPd8/BnsP6f6sx0JubJLH3pR\nKu2ayZY1cBFxaBNgS09I6ZvC+XxCcHc4tqyAvn4D5atmXkx8giVuGiMhA+apGNrt\nucmdvV0UeSSeUfjsJz/NyeP90HNT+QHcPZX9AhA9nXVqZIVqkv5JKC1dgn+Z95fl\nSh3mcUT/vjf0gR+iRoOx5x701Yt3wEYY50B4eB1IQs9vBGt4xvKhjOI3c75uRZWQ\nNq8/1hQeYAJbtRo/SlvviuxuV7Bj62AalAexd/vdqga+grcj34xqVVByI6rbmgfK\njqOO+aVIWzr2iA9y0Dr0397LlmcvPzHFuDUyEdoXRag9yNFeuHdj08zb0CrIyjbd\nqY96A1vCmSBKRyCGHrFqlJG5uO0IaHi4SrvJ1YPeqNM/KbU4jZC1czxlL7lFqFJy\nUIYU4GKYEYB5Ff74DY952z4svL2aPBeT61o3tbX4Rwirb4Rb2AgSTDFd7L+GjqzZ\n4XKCnN9qnYJ+hUNgd0h+l65tStpBk6tLFcVXqilm92us2+Aj8CGLZKtx2mhcoMrS\ncuA3nPr2+gzDeZJMkL5ThpFXDjQsxiUx3xLyetycf5Acr/n6FLg=\n=HrJn\n-----END PGP SIGNATURE-----",
+                        "payload": "tree 2f1b8eaecbd62e9b4c6d8ac8e4c839c6ee17a02f\nparent ea751d8a375ce8ef6e0848441b993e833fbe8911\nauthor Pascal Birchler <pascalb@google.com> 1785844158 +0200\ncommitter Pascal Birchler <pascalb@google.com> 1785844158 +0200\n\nUpdate package requirements\n",
+                        "verified_at": "2026-08-04T11:49:24Z"
+                    }
+                },
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/f7dd14da742b8722877d0517326320cc5041bafb",
+                "html_url": "https://github.com/wp-cli/block-command/commit/f7dd14da742b8722877d0517326320cc5041bafb",
+                "comments_url": "https://api.github.com/repos/wp-cli/block-command/commits/f7dd14da742b8722877d0517326320cc5041bafb/comments",
+                "author": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "committer": {
+                    "login": "swissspidy",
+                    "id": 841956,
+                    "node_id": "MDQ6VXNlcjg0MTk1Ng==",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/841956?v=4",
+                    "gravatar_id": "",
+                    "url": "https://api.github.com/users/swissspidy",
+                    "html_url": "https://github.com/swissspidy",
+                    "followers_url": "https://api.github.com/users/swissspidy/followers",
+                    "following_url": "https://api.github.com/users/swissspidy/following{/other_user}",
+                    "gists_url": "https://api.github.com/users/swissspidy/gists{/gist_id}",
+                    "starred_url": "https://api.github.com/users/swissspidy/starred{/owner}{/repo}",
+                    "subscriptions_url": "https://api.github.com/users/swissspidy/subscriptions",
+                    "organizations_url": "https://api.github.com/users/swissspidy/orgs",
+                    "repos_url": "https://api.github.com/users/swissspidy/repos",
+                    "events_url": "https://api.github.com/users/swissspidy/events{/privacy}",
+                    "received_events_url": "https://api.github.com/users/swissspidy/received_events",
+                    "type": "User",
+                    "user_view_type": "public",
+                    "site_admin": false
+                },
+                "parents": [
+                    {
+                        "sha": "ea751d8a375ce8ef6e0848441b993e833fbe8911",
+                        "url": "https://api.github.com/repos/wp-cli/block-command/commits/ea751d8a375ce8ef6e0848441b993e833fbe8911",
+                        "html_url": "https://github.com/wp-cli/block-command/commit/ea751d8a375ce8ef6e0848441b993e833fbe8911"
+                    }
+                ]
+            }
+        ],
+        "files": [
+            {
+                "sha": "bf50ffcf0dae6931101e22a104f9a090e7534f55",
+                "filename": ".github/dependabot.yml",
+                "status": "modified",
+                "additions": 4,
+                "deletions": 0,
+                "changes": 4,
+                "blob_url": "https://github.com/wp-cli/block-command/blob/f7dd14da742b8722877d0517326320cc5041bafb/.github%2Fdependabot.yml",
+                "raw_url": "https://github.com/wp-cli/block-command/raw/f7dd14da742b8722877d0517326320cc5041bafb/.github%2Fdependabot.yml",
+                "contents_url": "https://api.github.com/repos/wp-cli/block-command/contents/.github%2Fdependabot.yml?ref=f7dd14da742b8722877d0517326320cc5041bafb",
+                "patch": "@@ -7,11 +7,15 @@ updates:\n     open-pull-requests-limit: 10\n     labels:\n       - scope:distribution\n+    cooldown:\n+      default-days: 7\n   - package-ecosystem: github-actions\n     directory: \"/\"\n     schedule:\n       interval: daily\n     open-pull-requests-limit: 10\n     labels:\n       - scope:distribution\n+    cooldown:\n+      default-days: 7\n "
+            },
+            {
+                "sha": "c703112780bf8637c174896df34af8fd60e330bd",
+                "filename": ".github/workflows/copilot-setup-steps.yml",
+                "status": "modified",
+                "additions": 9,
+                "deletions": 3,
+                "changes": 12,
+                "blob_url": "https://github.com/wp-cli/block-command/blob/f7dd14da742b8722877d0517326320cc5041bafb/.github%2Fworkflows%2Fcopilot-setup-steps.yml",
+                "raw_url": "https://github.com/wp-cli/block-command/raw/f7dd14da742b8722877d0517326320cc5041bafb/.github%2Fworkflows%2Fcopilot-setup-steps.yml",
+                "contents_url": "https://api.github.com/repos/wp-cli/block-command/contents/.github%2Fworkflows%2Fcopilot-setup-steps.yml?ref=f7dd14da742b8722877d0517326320cc5041bafb",
+                "patch": "@@ -9,23 +9,29 @@ on:\n     paths:\n       - .github/workflows/copilot-setup-steps.yml\n \n+permissions:\n+  contents: read\n+\n jobs:\n   copilot-setup-steps:\n+    name: Setup environment\n     runs-on: ubuntu-latest\n     permissions:\n       contents: read\n \n     steps:\n       - name: Checkout code\n-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6\n+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n+        with:\n+          persist-credentials: false\n \n       - name: Check existence of composer.json file\n         id: check_composer_file\n         run: echo \"files_exists=$(test -f composer.json && echo true || echo false)\" >> \"$GITHUB_OUTPUT\"\n \n       - name: Set up PHP environment\n         if: steps.check_composer_file.outputs.files_exists == 'true'\n-        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2\n+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2\n         with:\n           php-version: 'latest'\n           ini-values: zend.assertions=1, error_reporting=-1, display_errors=On\n@@ -36,6 +42,6 @@ jobs:\n \n       - name: Install Composer dependencies & cache dependencies\n         if: steps.check_composer_file.outputs.files_exists == 'true'\n-        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4\n+        uses: ramsey/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # 4.0.0\n         env:\n           COMPOSER_ROOT_VERSION: dev-${{ github.event.repository.default_branch }}"
+            },
+            {
+                "sha": "102bd8455e80ed6dad671eaae71073b984e4dee5",
+                "filename": "README.md",
+                "status": "modified",
+                "additions": 1,
+                "deletions": 1,
+                "changes": 2,
+                "blob_url": "https://github.com/wp-cli/block-command/blob/f7dd14da742b8722877d0517326320cc5041bafb/README.md",
+                "raw_url": "https://github.com/wp-cli/block-command/raw/f7dd14da742b8722877d0517326320cc5041bafb/README.md",
+                "contents_url": "https://api.github.com/repos/wp-cli/block-command/contents/README.md?ref=f7dd14da742b8722877d0517326320cc5041bafb",
+                "patch": "@@ -1215,7 +1215,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file\n \n ## Support\n \n-GitHub issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support\n+GitHub issues aren't for general support questions. For support resources and next steps, see the WP-CLI Support page: https://make.wordpress.org/cli/handbook/support/\n \n \n *This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*"
+            },
+            {
+                "sha": "ebfd38d3d383ba825831570216ef73b9666f9f63",
+                "filename": "composer.json",
+                "status": "modified",
+                "additions": 2,
+                "deletions": 2,
+                "changes": 4,
+                "blob_url": "https://github.com/wp-cli/block-command/blob/f7dd14da742b8722877d0517326320cc5041bafb/composer.json",
+                "raw_url": "https://github.com/wp-cli/block-command/raw/f7dd14da742b8722877d0517326320cc5041bafb/composer.json",
+                "contents_url": "https://api.github.com/repos/wp-cli/block-command/contents/composer.json?ref=f7dd14da742b8722877d0517326320cc5041bafb",
+                "patch": "@@ -6,10 +6,10 @@\n   \"license\": \"MIT\",\n   \"authors\": [],\n   \"require\": {\n-    \"wp-cli/wp-cli\": \"^2.13\"\n+    \"wp-cli/wp-cli\": \"^3.0\"\n   },\n   \"require-dev\": {\n-    \"wp-cli/extension-command\": \"^2\",\n+    \"wp-cli/extension-command\": \"^2 || ^3\",\n     \"wp-cli/wp-cli-tests\": \"^5\"\n   },\n   \"config\": {"
+            }
+        ]
+    }
+}

@@ -1,0 +1,61 @@
+{
+  "advisories": {
+    "symfony/config": [
+      {
+        "advisoryId": "PKSA-9myg-zzdn-22rg",
+        "packageName": "symfony/config",
+        "affectedVersions": ">=2.0.0,<3.0.0|>=3.0.0,<4.0.0|>=4.0.0,<5.0.0|>=5.0.0,<5.1.0|>=5.1.0,<5.2.0|>=5.2.0,<5.3.0|>=5.3.0,<5.4.0|>=5.4.0,<5.4.56|>=6.0.0,<6.1.0|>=6.1.0,<6.2.0|>=6.2.0,<6.3.0|>=6.3.0,<6.4.0|>=6.4.0,<6.4.50|>=7.0.0,<7.1.0|>=7.1.0,<7.2.0|>=7.2.0,<7.3.0|>=7.3.0,<7.4.0|>=7.4.0,<7.4.23|>=8.0.0,<8.1.0|>=8.1.0,<8.1.11",
+        "title": "XXE (Local File Read) in Config XmlUtils::parse() via validateOnParse = true",
+        "cve": "CVE-2026-123824",
+        "link": "https://github.com/symfony/symfony/security/advisories/GHSA-5jff-8h8q-r5qx",
+        "reportedAt": "2026-11-04T10:45:07+00:00",
+        "sources": [
+          {
+            "name": "FriendsOfPHP/security-advisories",
+            "remoteId": "symfony/config/CVE-2026-123824.yaml"
+          }
+        ],
+        "severity": null
+      }
+    ],
+    "symfony/filesystem": [
+      {
+        "advisoryId": "PKSA-g499-cm4q-v35y",
+        "packageName": "symfony/filesystem",
+        "affectedVersions": ">=5.4.0,<5.4.56|>=6.0.0,<6.1.0|>=6.1.0,<6.2.0|>=6.2.0,<6.3.0|>=6.3.0,<6.4.0|>=6.4.0,<6.4.50|>=7.0.0,<7.1.0|>=7.1.0,<7.2.0|>=7.2.0,<7.3.0|>=7.3.0,<7.4.0|>=7.4.0,<7.4.23|>=8.0.0,<8.1.0|>=8.1.0,<8.1.11",
+        "title": "Filesystem Path Treats Any Prefix Before \"://\" as a Root, Letting Paths Escape Their Base Directory",
+        "cve": null,
+        "link": "https://github.com/symfony/symfony/security/advisories/GHSA-6prc-h956-hxjq",
+        "reportedAt": "2026-11-04T00:00:00+00:00",
+        "sources": [
+          {
+            "name": "FriendsOfPHP/security-advisories",
+            "remoteId": "symfony/filesystem/2026-11-04-18.yaml"
+          }
+        ],
+        "severity": null
+      }
+    ],
+    "symfony/yaml": [
+      {
+        "advisoryId": "PKSA-nktx-f1n1-b4yd",
+        "packageName": "symfony/yaml",
+        "affectedVersions": ">=2.0.0,<3.0.0|>=3.0.0,<4.0.0|>=4.0.0,<5.0.0|>=5.0.0,<5.1.0|>=5.1.0,<5.2.0|>=5.2.0,<5.3.0|>=5.3.0,<5.4.0|>=5.4.0,<5.4.56|>=6.0.0,<6.1.0|>=6.1.0,<6.2.0|>=6.2.0,<6.3.0|>=6.3.0,<6.4.0|>=6.4.0,<6.4.50|>=7.0.0,<7.1.0|>=7.1.0,<7.2.0|>=7.2.0,<7.3.0|>=7.3.0,<7.4.0|>=7.4.0,<7.4.23|>=8.0.0,<8.1.0|>=8.1.0,<8.1.11",
+        "title": "Exponential and Quadratic Parse Times in the YAML Parser Let a Single Document Hold a Process",
+        "cve": "CVE-2026-123792",
+        "link": "https://github.com/symfony/symfony/security/advisories/GHSA-hwfg-qwvh-2wfx",
+        "reportedAt": "2026-11-04T10:45:07+00:00",
+        "sources": [
+          {
+            "name": "FriendsOfPHP/security-advisories",
+            "remoteId": "symfony/yaml/CVE-2026-123792.yaml"
+          }
+        ],
+        "severity": null
+      }
+    ]
+  },
+  "abandoned": {
+    "behat/transliterator": null
+  }
+}

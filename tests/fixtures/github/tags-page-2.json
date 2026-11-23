@@ -1,0 +1,29 @@
+{
+    "request": "GET /repos/wp-cli/block-command/tags?per_page=2&page=2",
+    "status": 200,
+    "headers": {
+        "link": "<https://api.github.com/repositories/1113395273/tags?per_page=2&page=1>; rel=\"prev\", <https://api.github.com/repositories/1113395273/tags?per_page=2&page=3>; rel=\"next\", <https://api.github.com/repositories/1113395273/tags?per_page=2&page=3>; rel=\"last\", <https://api.github.com/repositories/1113395273/tags?per_page=2&page=1>; rel=\"first\""
+    },
+    "body": [
+        {
+            "name": "v1.0.2",
+            "zipball_url": "https://api.github.com/repos/wp-cli/block-command/zipball/refs/tags/v1.0.2",
+            "tarball_url": "https://api.github.com/repos/wp-cli/block-command/tarball/refs/tags/v1.0.2",
+            "commit": {
+                "sha": "ea751d8a375ce8ef6e0848441b993e833fbe8911",
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/ea751d8a375ce8ef6e0848441b993e833fbe8911"
+            },
+            "node_id": "REF_kwDOQl0QSbByZWZzL3RhZ3MvdjEuMC4y"
+        },
+        {
+            "name": "v1.0.1",
+            "zipball_url": "https://api.github.com/repos/wp-cli/block-command/zipball/refs/tags/v1.0.1",
+            "tarball_url": "https://api.github.com/repos/wp-cli/block-command/tarball/refs/tags/v1.0.1",
+            "commit": {
+                "sha": "259b8da86f84a386e262189be3f4b912183f563d",
+                "url": "https://api.github.com/repos/wp-cli/block-command/commits/259b8da86f84a386e262189be3f4b912183f563d"
+            },
+            "node_id": "REF_kwDOQl0QSbByZWZzL3RhZ3MvdjEuMC4x"
+        }
+    ]
+}
